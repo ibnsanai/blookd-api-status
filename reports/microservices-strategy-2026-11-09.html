@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blookd API — стратегия перехода на микросервисы</title>
+<style>
+:root{--bg:#f4f6fa;--panel:#fff;--ink:#172033;--muted:#5d687b;--line:#dce2ec;--accent:#3157c8;--ok:#14734b;--warn:#955800;--bad:#b42332;--info:#175cd3}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}main{width:min(1420px,calc(100% - 28px));margin:24px auto 50px}header,section,details{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:14px}header{border-top:4px solid var(--accent)}h1{margin:0 0 8px;font-size:28px}h2{margin:0 0 12px;font-size:21px}h3{margin:20px 0 8px;font-size:17px}p{margin:8px 0}a{color:var(--accent)}.muted{color:var(--muted)}.badge{display:inline-block;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:650;white-space:nowrap}.high{color:var(--ok);background:#e8f6ef}.medium{color:var(--warn);background:#fff4db}.low{color:var(--bad);background:#ffeaed}.fact{color:var(--info);background:#eaf2ff}.callout{border-left:4px solid var(--accent);background:#f3f6ff;padding:12px 14px;margin:12px 0}.warning{border-left-color:var(--warn);background:#fff8e8}.danger{border-left-color:var(--bad);background:#fff0f1}.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin:14px 0}.metric{border:1px solid var(--line);border-radius:8px;padding:11px}.metric strong{display:block;font-size:22px}.metric span{color:var(--muted);font-size:11px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;margin:10px 0}th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);padding:8px}th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.03em}td code,li code,p code{background:#eef1f7;border-radius:3px;padding:1px 3px}pre{padding:14px;overflow:auto;background:#111827;color:#e5e7eb;border-radius:8px;font:12px/1.5 Consolas,monospace;white-space:pre-wrap}.service{border:1px solid var(--line);border-radius:10px;padding:14px;margin:12px 0}.service h3{margin-top:0}.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}.ok-text{color:var(--ok);font-weight:650}.warn-text{color:var(--warn);font-weight:650}footer{color:var(--muted);font-size:12px}@media(max-width:1050px){.grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}.cols{grid-template-columns:1fr}}@media(max-width:520px){main{width:calc(100% - 14px);margin-top:8px}header,section{padding:13px}.grid{grid-template-columns:1fr}h1{font-size:23px}}
+</style>
+</head>
+<body><main>
+<header>
+<h1>Blookd API — стратегия перехода на микросервисы</h1>
+<p class="muted">Актуальный снимок: <code>dev</code> / <code>b88b2c3a</code>, 9 ноября 2026. Анализ статический; production, RPS, SLA и реальная prod-схема не проверялись.</p>
+<div class="callout"><strong>Рекомендация — вариант C, гибрид.</strong> Сохранить денежное и учётное ядро модульным монолитом. После подготовки вынести три процесса: <strong>reporting worker → notification worker → web BFF</strong>. Public catalog выделять только при подтверждённой нагрузке. Полный распил Booking/Payments/Identity сейчас создаст распределённый монолит, а не независимые сервисы. <span class="badge high">[высокая]</span> Основание: конкретные связи кода ниже и ранее подтверждённый размер команды — 2 разработчика.</div>
+<div class="grid">
+<div class="metric"><strong>482</strong><span>маршрута: 156 v1 + 290 v2/v3/web + 36 admin</span></div>
+<div class="metric"><strong>137 + 4</strong><span>таблиц + view по дампу и миграциям</span></div>
+<div class="metric"><strong>29</strong><span>DDD composition roots bootstrap.ts</span></div>
+<div class="metric"><strong>3</strong><span>новых процесса в целевом гибриде</span></div>
+<div class="metric"><strong>2</strong><span>разработчика; Kubernetes/Kafka преждевременны</span></div>
+</div>
+<p><span class="badge high">[высокая]</span> 290 маршрутов получены повторной загрузкой реальных Express routers на текущем <code>dev</code>, ошибок загрузки нет; 156 v1 подсчитаны статически. <span class="badge medium">[средняя]</span> Читатели/писатели таблиц — статическая нижняя оценка, не runtime trace. Полная исходная карта: <span>inventory-2026-11-07.html</span>.</p>
+</header>
+
+<section>
+<h2>1. Факты о текущей системе</h2>
+<div class="table-wrap"><table>
+<tr><th>Область</th><th>Что реально найдено</th><th>Архитектурное следствие</th></tr>
+<tr><td>Runtime и запуск</td><td>Node.js 20 в CI, Express 4, TypeScript + legacy JS; <code>server.ts</code>; production запускает <code>ts-node</code> через <code>serve:prod</code>. <code>package.json</code>, <code>Dockerfile</code>.</td><td>Сначала нужен быстрый собранный runtime и независимые контейнеры, а не новая service platform. <span class="badge high">[высокая]</span></td></tr>
+<tr><td>Слои</td><td>Новые пакеты имеют <code>application/domain/infrastructure/bootstrap.ts</code>. Legacy v1 и плоские сервисы смешивают routes, SQL и бизнес-правила. <code>src/service/index.ts</code> реэкспортирует 40+ доменов.</td><td>Переносить нужно готовые DDD-пакеты; legacy сначала закрыть адаптерами. Hub запрещает увидеть реальные границы. <span class="badge high">[высокая]</span></td></tr>
+<tr><td>БД</td><td>MySQL, Sequelize 6, <code>mysql</code> и два <code>mysql2/promise</code> pool: <code>src/db/connection.ts</code>, <code>config/database.js</code>. SQL migrations + manifest/ledger.</td><td>Общий пул и общая БД не позволяют объявить независимость по одному факту отдельного процесса. Нужен реестр владельцев таблиц и отдельные DB users. <span class="badge high">[высокая]</span></td></tr>
+<tr><td>Деньги</td><td><code>payment-attempts</code> связывает Stripe Connect, сохранённые карты, fee policy, refunds и legacy mirror: <code>payment-attempts/bootstrap.ts:47-90</code>.</td><td>Stripe side effects нельзя включить в распределённую ACID-транзакцию. Требуются idempotency, состояние попытки и reconciliation. <span class="badge high">[высокая]</span></td></tr>
+<tr><td>Фоновые задачи</td><td>Напоминания, auto-expire, no-show, сбор cancellation fee, waitlist и cleanup запускаются внутри API: <code>server.ts:87-135</code>, <code>taskRunner.ts</code>.</td><td>При втором инстансе задачи могут дублироваться. Перенос в worker требует единого scheduler/lock и feature flag. <span class="badge high">[высокая]</span></td></tr>
+<tr><td>Auth</td><td>Legacy device token, Cognito <code>GetUser</code>, web session и admin session — разные границы. <code>server.ts:187-211</code>, <code>middleware/cognitoAuth.ts</code>.</td><td>Нельзя просто проверять JWT на gateway и затем доверять произвольным <code>user_id</code> headers. Нужен единый internal principal. <span class="badge high">[высокая]</span></td></tr>
+<tr><td>Observability</td><td>Winston и request id уже есть: <code>utils/tracer.ts</code>, <code>request-context.ts</code>. Полноценных распределённых трасс и метрического стека в зависимостях нет.</td><td>Не начинать с OpenTelemetry/Kafka одновременно: сначала propagation корректного request/correlation id, метрики процессов и централизованные JSON-логи. <span class="badge high">[высокая]</span></td></tr>
+<tr><td>Деплой</td><td>GitHub Actions, ECR, Docker на EC2 через SSH; nginx в Terraform. CI запускается вручную или по <code>run-ci</code>: <code>ci.yml:14-19</code>.</td><td>Оставить этот путь для 2–4 процессов. Независимые образы и rollback проще ввести без Kubernetes. <span class="badge high">[высокая]</span></td></tr>
+</table></div>
+<h3>Текущая карта зависимостей (Mermaid)</h3>
+<pre><code>flowchart LR
+  V1[Legacy v1] --> Hub[src/service/index.ts]
+  V2[v2/v3 routes] --> Hub
+  Hub --> Identity[user / cognito / userDevice]
+  Hub --> Provider[serviceProvider / businessLocation]
+  Booking[appointment / bookings] --> Payments[payment-attempts]
+  Booking --> Cancellation[cancellation-policy]
+  Booking --> Notifications[notifications]
+  Booking --> Clients[provider-client]
+  Cancellation --> Payments
+  Payments --> Stripe[stripe-connect / Stripe API]
+  Payments --> Cancellation
+  Webhooks[stripe-webhooks] --> Payments
+  Webhooks --> Notifications
+  Notifications --> Devices[tbl_user_deviceinfo]
+  Notifications --> Tasks[scheduled_tasks]
+  Public[public-catalog] --> Booking
+  Public --> Provider
+  Web[web-session / web-signup] --> Identity
+  Web --> Provider
+  Reports[financial-report] --> Booking
+  Reports --> Payments
+  Admin[admin raw SQL + transactions] --> Identity
+  Admin --> Web
+  Hair[hair-tryon API] --> Booking
+  Hair --> HairGuard[Separate Python hair-guard]</code></pre>
+<p><span class="badge medium">[средняя]</span> Это главные рёбра, а не все исторические 285 imports. Текущий цикл подтверждён комментарием в <code>wallet-ledger/.../sql-wallet-ledger.repository.ts:6-14</code>: wallet специально обходит импорт через <code>appointment</code>, чтобы не получить цикл <code>service → payments → wallet</code>.</p>
+</section>
+
+<section>
+<h2>2. Shared data — главные места, где граница «рвётся»</h2>
+<div class="table-wrap"><table>
+<tr><th>Данные</th><th>Кто использует / пишет</th><th>Решение перед распилом</th></tr>
+<tr><td><code>tbl_user</code></td><td>Identity, wallet, web signup/reset/session, provider-client, notifications, admin, v1; баланс хранится в <code>wallet_amount</code>.</td><td>Разделить понятия Account и WalletAccount. Identity владеет аккаунтом; wallet получает собственную таблицу и API. Остальным — read model или вызов, но не UPDATE. <span class="badge high">[высокая]</span></td></tr>
+<tr><td><code>tbl_user_deviceinfo</code></td><td>Legacy sessions и push tokens. Пишут user/deviceTokens/web-session/admin.</td><td>Единый Session/Device module. Notifications только читает projection. Admin sign-out вызывает команду, а не обновляет таблицу напрямую. <span class="badge high">[высокая]</span></td></tr>
+<tr><td><code>tbl_service_provider</code></td><td>Профиль, вход, Stripe Connect, расписание, каталог, отчёты, hair try-on, admin.</td><td>Не разделять provider account и provider profile по разным БД. Выделить Provider API и отдельные projections для каталога/отчётов. <span class="badge high">[высокая]</span></td></tr>
+<tr><td><code>tbl_business_location</code></td><td>Booking availability, provider, waitlist, public catalog, notifications, marketing, app-links, v1/v2.</td><td>Владелец — Provider/Scheduling. Booking читает Availability contract; витрины получают projection. <span class="badge high">[высокая]</span></td></tr>
+<tr><td><code>appointments</code>, <code>payments</code>, <code>payment_attempts</code></td><td>Booking, cancellation, refunds, webhooks, admin и reports. <code>editAppointment.ts:163-323</code> меняет appointment и payment в одной transaction.</td><td>Пока оставить одну БД и один deployment unit. Для будущего раздела — Payment API, состояние saga и reconciliation, а не два монолита над одной таблицей. <span class="badge high">[высокая]</span></td></tr>
+<tr><td><code>appointment_details</code> view</td><td>Объединяет appointments, user, provider_client, provider, location, services, products/gallery/variants, images, payments, card details, reviews: <code>migrations/create_appointment_details_view.sql</code>.</td><td>Для reports и read replica можно сохранить. Между сервисами view запретить: заменить API/read models с явным владельцем и версией. <span class="badge high">[высокая]</span></td></tr>
+<tr><td><code>tbl_wallet_history</code> + <code>tbl_user.wallet_amount</code></td><td><code>SqlWalletLedgerRepository</code> пишет обе сущности в transaction: <code>...repository.ts:68-115</code>; legacy appointment/user paths тоже участвуют.</td><td>Современный guard и transaction уже есть. До выноса wallet перевести все legacy writers на тот же модуль и вынести баланс из Identity. <span class="badge high">[высокая]</span></td></tr>
+<tr><td><code>tbl_notification</code>, <code>scheduled_tasks</code></td><td>Notifications и legacy producers; cron частично уже использует persistent queue.</td><td>Сделать Notifications единственным writer. Producer пишет outbox в своей transaction; worker делает delivery idempotently. <span class="badge high">[высокая]</span></td></tr>
+<tr><td><code>tbl_web_session</code></td><td>Web session владеет логином, но admin делает прямой UPDATE при sign-out: <code>admin/actions/account-actions.ts:95-118</code>.</td><td>До выноса BFF заменить это на команду RevokeSessions или событие AccountSessionsRevoked с audit correlation id. <span class="badge high">[высокая]</span></td></tr>
+</table></div>
+<div class="callout warning"><strong>Правило:</strong> разные процессы над общими таблицами с прямыми записями из нескольких доменов — это не микросервисы. Shared DB допустима только как временная стадия с одним назначенным writer на таблицу.</div>
+</section>
+
+<section>
+<h2>3. Bounded contexts и владение данными</h2>
+<p>Bounded context здесь означает границу единых бизнес-правил и языка. Он <strong>не обязан</strong> сразу становиться отдельным микросервисом.</p>
+<div class="table-wrap"><table>
+<tr><th>Контекст / тип</th><th>Ответственность и aggregate roots</th><th>Основные таблицы и HTTP</th><th>Зависимости</th></tr>
+<tr><td><strong>Identity & Sessions</strong><br>Generic</td><td>Customer/provider credentials, Cognito/legacy/device/web sessions. Aggregates: Account, DeviceSession, WebSession.</td><td><code>tbl_user</code>, <code>tbl_user_deviceinfo</code>, <code>tbl_web_session</code>, password reset; <code>/v2/auth/*</code>, <code>/v3/web-auth/*</code>.</td><td>Sync: Cognito, provider account. Async: Twilio identity, notifications. Admin должен вызывать команды.</td></tr>
+<tr><td><strong>Provider & Scheduling</strong><br>Core</td><td>Профиль мастера, локации, услуги, рабочие часы, блокировки. Aggregates: Provider, Location, Schedule.</td><td><code>tbl_service_provider</code>, <code>tbl_business_location</code>, slots/block dates/time slots, <code>tbl_service</code>; v1/v2 provider.</td><td>Sync availability для Booking и public catalog; Stripe Connect onboarding остаётся Payments integration.</td></tr>
+<tr><td><strong>Booking</strong><br>Core</td><td>Создание/изменение записи, состав услуг и товаров, доступность. Aggregate: Appointment.</td><td><code>appointments</code>, <code>appointment_services</code>, <code>appointment_images</code>, legacy booking tables; <code>/v2|v3/appointments</code>.</td><td>Sync Provider, Clients, Payments. Async notifications/marketing. Не отделять от Payments на этом этапе.</td></tr>
+<tr><td><strong>Billing & Payments</strong><br>Core</td><td>Charges, capture/cancel/refund, payment links, gift cards, wallet ledger, fee policy. Aggregates: PaymentAttempt, Refund, WalletAccount, GiftCard.</td><td><code>payments</code>, <code>payment_attempts</code>, <code>payment_refunds</code>, methods, fee tables, webhook inbox, wallet/gift tables.</td><td>Sync Stripe/Booking. Async payment outcome. Idempotency и Stripe reconciliation обязательны.</td></tr>
+<tr><td><strong>Cancellation Policy</strong><br>Core subdomain</td><td>Preview отмены, no-show, долг и повторное взимание. Aggregates: CancellationCase, FeeDebt.</td><td><code>cancellation_fee_debts</code>, no-show activation + appointments/payment attempts.</td><td>Sync Payments/Booking. Уже есть retry и проверка Stripe: <code>retry-cancellation-fee.ts:17-60</code>.</td></tr>
+<tr><td><strong>Provider Clients / CRM</strong><br>Supporting</td><td>Связь мастер–клиент, walk-in, приглашения. Aggregates: ProviderClient, Invite.</td><td><code>provider_client</code>, <code>provider_client_invite</code>; <code>/v2/clients/*</code>.</td><td>Sync Identity/Booking; async invite and notification.</td></tr>
+<tr><td><strong>Catalog & Offers</strong><br>Supporting</td><td>Products, services, promos, posts, works. Aggregates раздельные: Product, Promo, Post, Work.</td><td><code>product*</code>, promo tables, <code>provider_posts*</code>, <code>works*</code>; v2/v3 routes.</td><td>Provider владеет исходными данными профиля; public catalog получает read-only projection.</td></tr>
+<tr><td><strong>Engagement</strong><br>Supporting</td><td>Waitlist, reviews, comments, chat, bookmarks. Aggregates: WaitlistEntry, Review, Conversation.</td><td>Waitlist/review/comment/chat/bookmark tables; соответствующие v1/v2/v3 routes.</td><td>Sync Booking/Provider/Identity; async Notifications. Chat зависит от Twilio.</td></tr>
+<tr><td><strong>Notifications</strong><br>Generic</td><td>Доставка push/SMS/email/web push, preferences, reminders. Aggregates: Notification, Delivery, ScheduledTask.</td><td><code>tbl_notification</code>, preferences, <code>scheduled_tasks</code>; <code>/v2/notifications/*</code>, notification settings.</td><td>Async события доменов; reads Identity/Booking projections; Twilio/APNs/FCM/SMTP.</td></tr>
+<tr><td><strong>Reporting</strong><br>Supporting</td><td>Финансовые отчёты, PDF/XLSX и email. Aggregate после async-версии: ReportJob.</td><td>Читает <code>appointment_details</code>, payments/refunds/attempts, provider/location; <code>POST /v2/email/reports/send</code>.</td><td>Read-only в начале. Собственные jobs/artifacts только при переходе к async API.</td></tr>
+<tr><td><strong>Web Experience</strong><br>Supporting / BFF</td><td>Веб-сессии, публичный каталог, app links, web push, provider web login.</td><td>Web tables + read models каталога; <code>/v3/public</code>, <code>/v3/web-auth</code>, <code>/v3/web-push</code>, root share routes.</td><td>Sync Identity/Provider через internal API; read replica для каталога после допущения lag.</td></tr>
+<tr><td><strong>Platform / Admin</strong><br>Generic</td><td>Admin sessions/audit/actions, CMS, support, operational views.</td><td><code>admin_*</code>, <code>app_request_log</code>, CMS/support + shared business tables.</td><td>Оставить рядом с ядром: прямые cross-domain transactions и audit в <code>account-actions.ts</code>.</td></tr>
+<tr><td><strong>AI Hair Try-on</strong><br>Supporting</td><td>Сессии/варианты в API, CPU/AI rendering в отдельном Python service.</td><td><code>hair_tryon_*</code>, works; <code>/v3/hair-tryon/*</code> → <code>hair-guard /v1/render|describe</code>.</td><td>Уже отдельный deployment. Не плодить ещё один сервис для orchestration без метрик.</td></tr>
+</table></div>
+</section>
+
+<section>
+<h2>4. Целевая архитектура</h2>
+<pre><code>flowchart LR
+  Mobile[Mobile apps] --> Nginx[Existing nginx / API routing]
+  Web[Website] --> Nginx
+  AdminUI[Admin UI] --> Nginx
+  Nginx --> Core[Modular monolith\nIdentity + Provider + Booking +\nPayments + Cancellation + CRM + Admin]
+  Nginx --> BFF[Web BFF\nweb-auth + public + web-push + app-links]
+  Core --> Report[Reporting worker\nPDF / XLSX / email]
+  Core -->|outbox events| Notify[Notification worker\npush / SMS / reminders]
+  BFF -->|internal account/provider API| Core
+  Core --> DB[(Core MySQL schema)]
+  Report -->|read-only SQL, initially primary| DB
+  Report -.later.-> Replica[(Read replica / reporting schema)]
+  Notify --> NotifyDB[(Notification schema)]
+  BFF --> WebDB[(Web schema)]
+  Core --> Stripe[Stripe]
+  Core --> Cognito[Cognito]
+  Notify --> Twilio[Twilio / APNs / FCM / SMTP]
+  Core --> HairGuard[Existing Python hair-guard]
+  PublicTraffic[Optional measured split] -.-> Catalog[Catalog read service + projection]</code></pre>
+<p><span class="badge high">[высокая]</span> Это цель для текущей команды, а не обязательное конечное состояние навсегда. Core можно разделить позже после появления независимых владельцев данных и измеренной необходимости.</p>
+
+<div class="service">
+<h3>4.1. Reporting worker — первый вынос</h3>
+<p><strong>Почему первым:</strong> узкая задача, нет записей в бизнес-таблицы, существует один публичный вход. <code>financial-report/pdf.ts:28-31</code> указывает ~150 MB на Chrome; параллельность ограничена 2, очередь — 20. <code>modules/v2/email.ts:84-129</code> уже проверяет provider ownership и держит per-provider in-flight guard. <span class="badge high">[высокая]</span></p>
+<div class="cols"><div><strong>API и совместимость</strong><ul><li>Первый релиз: внутренний синхронный <code>POST /internal/reports/email</code>; существующий <code>POST /v2/email/reports/send</code> остаётся синхронным и возвращает те же 200/400/403/429/500.</li><li>Флаг <code>REPORT_EXECUTION=local|remote</code> обеспечивает немедленный rollback.</li><li>Позже отдельный новый async API: <code>POST /v3/reports</code> → 202 + reportId; <code>GET /v3/reports/:id</code>; события <code>report.completed/failed.v1</code>. Старый v2 не ломать.</li></ul></div><div><strong>Данные, consistency, auth</strong><ul><li>Сначала read-only DB user к текущей primary БД: финансовый отчёт не должен незаметно отставать. Replica — после согласованного lag.</li><li>Собственные таблицы не нужны для sync worker. Для async: <code>report_jobs</code>, metadata, S3 artifacts; не копировать payments.</li><li>Внешний request проходит auth в Core. Worker доступен только private network и проверяет signed service credential; providerId из внешнего headers напрямую не доверяется.</li></ul></div></div>
+<p><strong>Готово:</strong> побайтовое/структурное сравнение PDF/XLSX и сумм по набору fixture periods; 429/timeout сохранены; Core не запускает Chrome при remote mode; неделя метрик без новых ошибок; rollback на local проверен. <span class="badge high">[высокая]</span></p>
+</div>
+
+<div class="service">
+<h3>4.2. Notification worker — второй вынос, только после outbox</h3>
+<p><strong>Почему не первым:</strong> producers находятся в appointment, waitlist, promo, provider-client, payments, Stripe/Twilio webhooks: текущий <code>notifications/bootstrap.ts</code> собирает 9 use cases, а notifications импортирует booking/payment context. Простое перемещение cron потеряет события или создаст синхронные HTTP-цепочки. <span class="badge high">[высокая]</span></p>
+<div class="cols"><div><strong>События и API</strong><ul><li>Предлагаемые versioned events: <code>booking.appointment.created/cancelled.v1</code>, <code>payments.outcome.changed.v1</code>, <code>waitlist.opening.detected.v1</code>, <code>provider-client.app-user-linked.v1</code>, <code>chat.message.received.v1</code>.</li><li>Public read APIs <code>PATCH /v2/notifications/:id/read</code> и notification settings на первом этапе остаются в Core.</li><li>Worker не имеет публичного API, только health/metrics и consumer.</li></ul></div><div><strong>Данные и доставка</strong><ul><li>Core transaction пишет business row + <code>outbox_events</code>. Это устраняет dual write «БД сохранила, брокер потерял».</li><li>Worker владеет notification/delivery tables после перевода legacy writers. Device tokens и booking context читает через projection/API, не UPDATE.</li><li>Idempotency key: <code>eventId + recipient + channel + templateVersion</code>; retry with backoff, dead letter status, ручной replay.</li><li>Scheduler переносится одним флагом; старый cron в <code>server.ts</code> отключается до запуска нового.</li></ul></div></div>
+<p><strong>Готово:</strong> тест «commit succeeds / publisher temporarily down» не теряет событие; повтор delivery не создаёт второй push; crash после отправки разрешён reconciliation/status check; все producers используют outbox; p95 задержки и DLQ видны в метриках. <span class="badge high">[высокая]</span></p>
+</div>
+
+<div class="service">
+<h3>4.3. Web BFF — третий вынос</h3>
+<p><strong>Почему кандидат:</strong> public/web routers уже монтируются отдельно до legacy middleware: <code>server.ts:187-198</code>. Их можно маршрутизировать nginx без изменения URL. Но <code>ProviderWebAccountGateway</code> напрямую вызывает legacy provider login, а web signup/reset/session пишут в общие account/device tables. <span class="badge high">[высокая]</span></p>
+<div class="cols"><div><strong>Переносимые API</strong><ul><li><code>/v3/web-auth/*</code>, <code>/v3/web-push/*</code>, <code>/v3/public/*</code>, root share/app-links.</li><li>Сначала BFF и Core работают на одной БД с одним writer per table; затем отдельная web schema.</li><li>Public catalog можно оставить модулем BFF, а не создавать четвёртый сервис.</li></ul></div><div><strong>Обязательная anti-corruption layer</strong><ul><li>Core предоставляет внутренние команды: verify customer/provider credentials, create/exchange session, reset password, revoke sessions, load provider/account snapshot.</li><li>BFF владеет <code>tbl_web_session</code>, <code>tbl_web_password_reset</code>, <code>tbl_web_push_subscription</code>; <code>tbl_user</code> и deviceinfo остаются Identity.</li><li>Admin sign-out заменяется вызовом/session event до физического разделения БД.</li><li>Nginx передаёт только установленные маршруты; Core не принимает spoofable account headers из интернета.</li></ul></div></div>
+<p><strong>Готово:</strong> contract tests текущих web responses/cookies/headers/ETag; mobile token не проходит в web-only routes, web token не проходит в legacy routes; account writes идут только через Identity; rollback nginx на Core проверен. <span class="badge high">[высокая]</span></p>
+</div>
+
+<div class="service">
+<h3>4.4. Public catalog — условный шаг, не обязательный</h3>
+<p><code>public-catalog/bootstrap.ts</code> уже имеет <code>SequelizeCatalogDatasource</code>, но также вызывает <code>listBookableSlots</code> из appointment и читает provider/products/blocked dates. Поэтому сначала выделить versioned CatalogReadModel и projection; переносить процесс только при высокой доле read traffic или независимых требованиях масштабирования. API остаётся текущим 10 public routes + ETag. <span class="badge medium">[средняя]</span> Нет RPS — нет доказательства выгоды отдельного сервиса.</p>
+</div>
+</section>
+
+<section>
+<h2>5. Пошаговый roadmap с критериями «готово»</h2>
+<div class="table-wrap"><table>
+<tr><th>Шаг</th><th>Работы</th><th>БД и коммуникация</th><th>Критерий завершения / rollback</th></tr>
+<tr><td><strong>0A. Безопасность и измерения</strong></td><td>Закрыть оставшиеся PAN/CVV, SQL/auth/ownership, <code>DOTENV_KEY</code> в <code>Dockerfile:33-34</code>, зависимости; автоматический required CI; собрать RPS/p95/p99, DB profile, живые v1.</td><td>Без изменения topology. Не выделять процесс при открытых критических breach paths.</td><td>Critical закрыты или формально приняты владельцем; CI обязателен; есть 2–4 недели baseline метрик и список живых v1. <span class="badge high">[высокая]</span></td></tr>
+<tr><td><strong>0B. Воспроизводимая схема и контракты</strong></td><td>Read-only prod/pre-prod schema dump; устранить model drift, включая <code>ProductPurchase.booking_id</code>; characterization tests legacy; зафиксировать API contracts.</td><td>Baseline + expand/contract migrations. API tests против реальных migrations, не только моделей.</td><td>Чистая БД воспроизводится из репозитория; parity model/schema проверяется в CI; критические user journeys зелёные.</td></tr>
+<tr><td><strong>0C. Модульный монолит</strong></td><td>Убрать <code>src/service/index.ts</code> hub, запретить новые cross-domain imports/writes, назначить table owners, вынести Session/Device и Wallet contracts, заменить admin direct session writes.</td><td>По-прежнему одна БД; один writer на таблицу; внутренние interfaces вместо HTTP.</td><td>Architecture guard в CI не пропускает новые циклы/чужие writes; dependency graph явный; откат обычным релизом.</td></tr>
+<tr><td><strong>0D. Outbox и эксплуатация</strong></td><td><code>outbox_events</code>, publisher, idempotent consumers, correlation id, health/readiness, собранный JS, runtime secrets, resource limits, distributed cron policy.</td><td>At-least-once delivery через MySQL polling с <code>FOR UPDATE SKIP LOCKED</code>; этот механизм уже применён в scheduled task repository.</td><td>Crash/retry tests; ни один production event не зависит от синхронного push; readiness исключает неготовый процесс; rollback не дублирует jobs.</td></tr>
+<tr><td><strong>1. Reporting worker</strong></td><td>Отдельный образ, internal sync API, remote/local flag; удалить Chrome workload из Core при remote mode.</td><td>Read-only primary DB user; собственная БД не нужна. Async jobs/replica — отдельное решение.</td><td>Report parity + load test; resource isolation; 1 неделя без регрессий; rollback local проверен.</td></tr>
+<tr><td><strong>2. Notification worker</strong></td><td>Перевести producers на outbox, перенести deliveries/reminders и соответствующий cron, централизовать writes.</td><td>Outbox → worker; notification schema; device/booking projections; retry/DLQ.</td><td>Ноль потерянных outbox rows; повторная обработка без дублей; old cron выключен; p95 lag и DLQ под контролем.</td></tr>
+<tr><td><strong>3. Web BFF</strong></td><td>Identity anti-corruption API, перенос web/session routes по группам через nginx; contract tests.</td><td>Shared DB с single writer → web schema → отдельная БД только после прекращения cross-writes.</td><td>Каждая route group работает parallel/shadow, затем переключена; rollback nginx; неделя без auth/catalog регрессий.</td></tr>
+<tr><td><strong>4. Опционально Catalog</strong></td><td>Projection и rebuild, отдельное масштабирование только по доказанной read-нагрузке.</td><td>Events из Provider/Catalog/Booking; собственная read DB; lag и rebuild monitoring.</td><td>Проекция сходится с source, rebuild повторяем, lag в пределах SLA, выгода превышает стоимость эксплуатации. <span class="badge medium">[средняя]</span></td></tr>
+<tr><td><strong>5. Пересмотр Core</strong></td><td>Решение по Booking/Payments принимать только после устранения cycles, shared writes и появления измеренной причины/команды владельца.</td><td>Payment commands + events, saga, idempotency, Stripe reconciliation; отдельные schemas до physical DB.</td><td>Нет cross-domain SQL/transactions; failure drills доказывают отсутствие double charge/lost booking; есть on-call владельцы. <span class="badge low">[низкая]</span> Сейчас срок и необходимость не определены.</td></tr>
+</table></div>
+</section>
+
+<section>
+<h2>6. Как разделять БД без большого взрыва</h2>
+<div class="table-wrap"><table>
+<tr><th>Стадия</th><th>Разрешено</th><th>Запрещено / условие перехода</th></tr>
+<tr><td><strong>1. Shared DB, modular monolith</strong></td><td>Один RDS, таблицы с назначенным владельцем; внутри процесса интерфейсы; reports получает read-only user.</td><td>Cross-domain writes из новых модулей. Переход после architecture guard и inventory всех writers.</td></tr>
+<tr><td><strong>2. Отдельные процессы, shared DB временно</strong></td><td>Core, reporting, notifications, BFF; свои DB users и минимальные grants; outbox/read-only projections.</td><td>Два writers на одну таблицу; прямые joins из чужого runtime, кроме явно временных read-only reporting/catalog.</td></tr>
+<tr><td><strong>3. Логические schemas на том же RDS</strong></td><td><code>core</code>, <code>notifications</code>, <code>web</code>, <code>reporting</code>; независимые migrations и credentials.</td><td>Cross-schema foreign keys и transactions. Сначала backfill + dual-read/compare; dual-write только временно и через один владелец.</td></tr>
+<tr><td><strong>4. Отдельные физические БД</strong></td><td>Только для автономных notification/web/reporting data, когда API/events закрывают все остальные чтения и записи.</td><td>Перенос Booking/Payments по причине «так принято». Нужны независимый SLA, capacity и владелец эксплуатации.</td></tr>
+</table></div>
+<h3>Конкретные переходы данных</h3>
+<ul>
+<li><strong>Wallet:</strong> создать <code>wallet_accounts</code> и полноценный ledger, backfill из <code>tbl_user.wallet_amount</code>/<code>tbl_wallet_history</code>; перевести все writers на Wallet module; dual-read compare; удалить старое поле отдельным поздним релизом. Сохранить атомарный conditional debit и history в одной transaction.</li>
+<li><strong>Web sessions:</strong> сначала убрать admin direct UPDATE и оставить один Session writer; затем backfill web tables в web schema; sign-out и password reset проверять cross-store reconciliation.</li>
+<li><strong>Notifications:</strong> перевести все producers на outbox до переноса <code>tbl_notification</code>; replay из outbox для backfill; сравнить количество и статусы deliveries.</li>
+<li><strong>Reporting:</strong> не копировать платёжные source-of-truth tables. Сначала read-only primary, затем replica/projection с зафиксированным <code>dataAsOf</code>.</li>
+</ul>
+</section>
+
+<section>
+<h2>7. Модуль → контекст → целевой сервис → шаг → риск</h2>
+<div class="table-wrap"><table>
+<tr><th>Модуль</th><th>Bounded context</th><th>Цель</th><th>Шаг</th><th>Главный риск</th></tr>
+<tr><td><code>financial-report</code>, <code>serviceProvider/reports.ts</code></td><td>Reporting</td><td>Reporting worker</td><td>1</td><td>Несовпадение цифр, replica lag, memory/CPU.</td></tr>
+<tr><td><code>notifications</code>, reminder crons</td><td>Notifications</td><td>Notification worker</td><td>2</td><td>Потеря/дубли delivery, несколько producers.</td></tr>
+<tr><td><code>web-session</code>, <code>web-signup</code>, password reset</td><td>Identity + Web Experience</td><td>Web BFF + Identity API в Core</td><td>3</td><td>Утечка/подделка session context, shared account writes.</td></tr>
+<tr><td><code>public-catalog</code>, <code>app-links</code>, <code>web-push</code></td><td>Web Experience</td><td>Web BFF; Catalog отдельно только по метрикам</td><td>3–4</td><td>Availability dependency, устаревшая projection, ETag contract.</td></tr>
+<tr><td><code>user</code>, <code>cognito</code>, <code>userDevice</code></td><td>Identity</td><td>Остаётся Core</td><td>0C</td><td>Cognito/DB partial failure, legacy device tokens.</td></tr>
+<tr><td><code>serviceProvider</code>, <code>businessLocation</code></td><td>Provider & Scheduling</td><td>Остаётся Core</td><td>0C</td><td>Смешение account/profile/schedule/Connect.</td></tr>
+<tr><td><code>appointment</code>, <code>bookings</code></td><td>Booking</td><td>Остаётся Core</td><td>0C; пересмотр 5</td><td>Cross-domain transaction и view на 10+ сущностей.</td></tr>
+<tr><td><code>payment-attempts</code>, methods, Connect, webhooks</td><td>Billing</td><td>Остаётся Core</td><td>0C; пересмотр 5</td><td>Double charge, Stripe/DB divergence, cyclic calls.</td></tr>
+<tr><td><code>cancellation-policy</code></td><td>Cancellation</td><td>Остаётся рядом с Booking/Payments</td><td>0C; пересмотр 5</td><td>Debt/retry consistency и внешние side effects.</td></tr>
+<tr><td><code>wallet-ledger</code>, gift cards</td><td>Billing</td><td>Wallet module внутри Core</td><td>0C</td><td>Баланс в Identity и legacy writers.</td></tr>
+<tr><td><code>provider-client</code></td><td>CRM</td><td>Остаётся Core</td><td>0C</td><td>Связь user/walk-in и notifications.</td></tr>
+<tr><td><code>waitlist</code>, reviews, chat</td><td>Engagement</td><td>Остаётся Core; события наружу</td><td>0D–2</td><td>Синхронные notification chains.</td></tr>
+<tr><td><code>product</code>, promo, posts, works</td><td>Catalog & Offers</td><td>Core + catalog projection</td><td>0C–4</td><td>Booking line items и source-of-truth ambiguity.</td></tr>
+<tr><td><code>admin</code></td><td>Platform</td><td>Остаётся Core/Admin</td><td>0C</td><td>Прямые SQL writes и atomic audit.</td></tr>
+<tr><td><code>hair-tryon</code> + <code>services/hair-guard</code></td><td>AI Hair</td><td>API orchestration в Core; Python уже отдельно</td><td>Готово архитектурно</td><td>Фото/PII, resource limits, provider availability.</td></tr>
+</table></div>
+</section>
+
+<section>
+<h2>8. Коммуникация, транзакции и auth</h2>
+<h3>Где sync, где async</h3>
+<ul>
+<li><strong>Sync REST внутри private network:</strong> Core → Reporting на первом этапе; BFF → Identity/Provider commands; чтение availability, если оно нужно немедленно. gRPC сейчас не нужен: существующие контракты HTTP/JSON, команда маленькая. <span class="badge high">[высокая]</span></li>
+<li><strong>Async outbox:</strong> notifications, projections, marketing, report completion в будущем async API. Доставка at-least-once, поэтому «exactly once» достигается только idempotent business effect, а не обещанием брокера.</li>
+<li><strong>Деньги:</strong> charge/capture/refund — синхронные команды с idempotency key; webhook и scheduled reconciliation подтверждают фактическое состояние Stripe. Не переводить денежную операцию в fire-and-forget.</li>
+</ul>
+<h3>Saga и reconciliation вместо распределённых ACID</h3>
+<p>Если Booking/Payments когда-либо разделяются: Booking создаёт запись в состоянии <code>pending_payment</code> + outbox; Payments выполняет идемпотентный checkout; событие результата обновляет Booking; timeout запускает recovery, а не автоматически удаляет запись. Cancellation использует FeeDebt и retry. Уже существующий <code>retry-cancellation-fee.ts</code> показывает подходящий шаблон: idempotency chain, retrieve/cancel PaymentIntent и явное <code>requires reconciliation</code>.</p>
+<p>Регистрация Cognito требует аналогичной подготовки ещё в монолите: <code>cognito.ts:369-379</code> вызывает AWS внутри DB transaction. Решение — состояние <code>identity_pending</code>, внешний вызов вне transaction, повторяемая сверка и компенсация/очистка сирот; rollback MySQL не отменяет AWS user.</p>
+<h3>Аутентификация</h3>
+<ul>
+<li><strong>Gateway:</strong> существующий nginx только маршрутизирует и удаляет небезопасные internal headers. Не создавать новый Auth service и не переносить владение Cognito на gateway.</li>
+<li><strong>External auth:</strong> Core продолжает legacy/Cognito проверки; BFF проверяет свои web sessions. Токены и account UUID/type образуют явный principal.</li>
+<li><strong>Internal auth:</strong> подписанный короткоживущий service credential + audience + request id; user context подписывается доверенным caller. Для текущей private Docker network этого достаточно. mTLS добавлять при межхостовом трафике/compliance, а не как обязательное украшение.</li>
+<li><strong>Будущее:</strong> локальная OIDC/JWKS проверка для новых service tokens; существующий Cognito GetUser нельзя молча заменить обычным JWT cache без решения о revocation semantics.</li>
+</ul>
+</section>
+
+<section>
+<h2>9. Инфраструктура и CI/CD для команды из двух человек</h2>
+<div class="table-wrap"><table>
+<tr><th>Решение</th><th>Рекомендация под этот проект</th><th>Уверенность</th></tr>
+<tr><td>API Gateway / BFF</td><td>Оставить nginx на EC2. BFF нужен как отдельный web deployment с уже существующими <code>/v3/web-*</code> и public routes, а не как дополнительный Kong/Apigee.</td><td><span class="badge high">[высокая]</span> routes уже разделены в <code>server.ts</code>.</td></tr>
+<tr><td>Service discovery</td><td>Docker network DNS по образцу <code>HAIR_GUARD_URL=http://hair-guard:8090</code>. При росте — ECS service discovery; Consul не нужен.</td><td><span class="badge high">[высокая]</span> существующий working precedent.</td></tr>
+<tr><td>Очередь</td><td>Сначала MySQL outbox/publisher и <code>SKIP LOCKED</code>. RabbitMQ рассмотреть при необходимости нескольких независимых consumers и операционном опыте; Kafka/NATS сейчас преждевременны.</td><td><span class="badge high">[высокая]</span> нет RPS, нет broker в зависимостях, есть DB queue pattern.</td></tr>
+<tr><td>Контейнеры</td><td>Отдельные Dockerfiles/images для core, reporting, notifications, BFF; resource limits; на старте тот же EC2 или отдельный host для Chrome. Kubernetes не вводить ради 3 процессов.</td><td><span class="badge high">[высокая]</span> GitHub Actions уже строит API и hair-guard отдельно.</td></tr>
+<tr><td>CI/CD</td><td>Path-filtered builds, per-service image tags, contract tests, backward-compatible migrations, deploy one service at a time, health gate и automatic rollback to previous image. Обязательный CI без ручного <code>run-ci</code>.</td><td><span class="badge high">[высокая]</span> текущий workflow — готовая основа.</td></tr>
+<tr><td>Config/secrets</td><td>Убрать <code>DOTENV_KEY</code> из образа; runtime secrets через существующий AWS/deploy secret channel; Zod startup validation; отдельные минимальные env для каждого процесса.</td><td><span class="badge high">[высокая]</span> <code>Dockerfile</code> и Zod уже присутствуют.</td></tr>
+<tr><td>Логи и correlation</td><td>Сохранить Winston JSON; передавать <code>x-request-id</code> и event <code>correlationId/causationId</code>; не логировать tokens/PII; единые service/version/event fields.</td><td><span class="badge high">[высокая]</span> request id уже частично реализован.</td></tr>
+<tr><td>Метрики</td><td>HTTP RPS/error/p95/p99, event loop/heap, DB pool, outbox lag/DLQ, notification attempts, report render duration/Chrome count. Сначала CloudWatch, так как уже используются AWS log groups.</td><td><span class="badge high">[высокая]</span> не требует новой observability platform.</td></tr>
+<tr><td>Tracing</td><td>После появления remote calls добавить OpenTelemetry SDK и W3C traceparent; до этого исправить propagation request id. Трассировка не заменяет метрики очереди и reconciliation.</td><td><span class="badge medium">[средняя]</span> конкретный backend выбирать после инвентаризации AWS.</td></tr>
+</table></div>
+</section>
+
+<section>
+<h2>10. Риски и антипаттерны именно этого проекта</h2>
+<div class="table-wrap"><table>
+<tr><th>Риск</th><th>Доказательство</th><th>Как избежать</th></tr>
+<tr><td><strong>Распределённый монолит</strong></td><td>Booking ↔ Cancellation ↔ Payments имеют циклические imports и общие transactions; <code>public-catalog</code> вызывает appointment slots.</td><td>Сначала убрать cycles через domain interfaces/events. Если каждый HTTP вызывает ещё 3 sync HTTP, не выносить.</td></tr>
+<tr><td><strong>Потеря consistency денег</strong></td><td>Stripe вызовы примыкают к DB transactions; cancellation retries меняют intent и payment attempt.</td><td>Idempotency keys, immutable attempts, webhook inbox, Stripe retrieve/reconciliation, failure drills. Никаких distributed transactions.</td></tr>
+<tr><td><strong>Дубли и рассинхронизация</strong></td><td><code>tbl_user</code> одновременно account и wallet; каталог/отчёты читают несколько domains.</td><td>Один source of truth, versioned events, projection checkpoints, rebuild и periodic reconciler.</td></tr>
+<tr><td><strong>Dual write</strong></td><td>Сейчас business operation и notifications вызываются из одного процесса; при переносе возникнет БД + broker.</td><td>Outbox в той же DB transaction. Запретить прямой publish после commit без persistent record.</td></tr>
+<tr><td><strong>Duplicate cron</strong></td><td><code>server.ts</code> запускает задачи в каждом API процессе; общий distributed lock отсутствует.</td><td>Единый scheduler owner, DB claim/lease, односторонний cutover flag и overlap test.</td></tr>
+<tr><td><strong>Auth bypass между сервисами</strong></td><td>Сейчас публичные пути определяются по тексту, а user id активно передаётся в legacy APIs.</td><td>Explicit route registry, deny-by-default, gateway strips internal headers, signed principal и ownership tests.</td></tr>
+<tr><td><strong>Web session split ломает admin sign-out</strong></td><td><code>account-actions.ts:95-118</code> обновляет devices и web sessions в одной admin transaction.</td><td>До split ввести command/event и сохранить audit outcome; после split не обещать атомарность всех хранилищ.</td></tr>
+<tr><td><strong>Отчёт показывает устаревшие деньги</strong></td><td>Reports собирают payment/refund/attempt из нескольких источников.</td><td>Сначала read-only primary; для replica показывать <code>dataAsOf</code> и согласовать допустимый lag.</td></tr>
+<tr><td><strong>Рост эксплуатации быстрее команды</strong></td><td>2 разработчика, уже есть API + Python hair-guard + admin frontend + MySQL + внешние SDK.</td><td>Не более одного нового процесса за стабилизационный цикл; общие шаблоны health/logging/deploy; нет k8s/Kafka без измеренной причины.</td></tr>
+<tr><td><strong>Регрессии скрыты старым baseline</strong></td><td>После последнего локального прогона API: 1252 passed / 36 failed; новых не было, но baseline не полностью зелёный.</td><td>Сокращать known list, добавлять characterization/contract tests перед каждым cutover; сравнивать имена, а не только число failures.</td></tr>
+</table></div>
+</section>
+
+<section>
+<h2>11. Что не выносить сейчас</h2>
+<ul>
+<li><strong>Booking + Payments + Cancellation:</strong> общие транзакции, locks, read views и циклы. Их вынос даст наибольшую цену и риск, а не самую простую победу.</li>
+<li><strong>Identity как отдельный микросервис:</strong> Cognito уже внешний generic service; локальные account/device/web/admin boundaries ещё не приведены к единому контракту.</li>
+<li><strong>Provider profile/scheduling:</strong> availability нужен Booking и catalog синхронно, а provider table содержит и account, и профиль, и Connect.</li>
+<li><strong>Admin:</strong> audit и account changes намеренно используют cross-table transactions. Это внутренний back-office, а не независимый продуктовый capability.</li>
+<li><strong>Media upload:</strong> <code>/v2/upload/presign</code> узкий, но S3 SDK уже делает основную работу; отдельный процесс добавит сетевой вызов без доказанной выгоды.</li>
+<li><strong>Hair-guard orchestration:</strong> rendering уже вынесен в Python. Не дробить дополнительно API session workflow.</li>
+<li><strong>Chat:</strong> сначала убрать дубли v1/v2 и определить владельца notification events; только затем обсуждать выделение.</li>
+</ul>
+</section>
+
+<section>
+<h2>12. Сравнение альтернатив</h2>
+<div class="table-wrap"><table>
+<tr><th>Вариант</th><th>Плюсы</th><th>Цена для этого проекта</th><th>Вывод</th></tr>
+<tr><td><strong>A. Полный распил</strong></td><td>Теоретически независимые масштабирование и релизы доменов.</td><td>137 таблиц, shared account/provider, cross-domain transactions/view, auth variants и 2 разработчика. Максимальный риск distributed monolith и double charge.</td><td><strong>Не рекомендован.</strong> <span class="badge high">[высокая]</span></td></tr>
+<tr><td><strong>B. Только модульный монолит</strong></td><td>Минимальная эксплуатация, ACID в core, понятные границы и дешёвый rollback.</td><td>Chrome и deliveries продолжают делить process/resources с API; нет независимого масштабирования web read workload.</td><td><strong>Правильный обязательный этап</strong>, может оказаться достаточным, если метрики не покажут проблему. <span class="badge high">[высокая]</span></td></tr>
+<tr><td><strong>C. Гибрид</strong></td><td>Изолирует реальные ресурсоёмкие/async/web workloads, сохраняет ACID в денежном ядре, допускает пошаговый rollback.</td><td>Нужны outbox, internal auth, 3 deploy pipelines и дисциплина single writer.</td><td><strong>Рекомендован.</strong> Соответствует текущему коду и команде. <span class="badge high">[высокая]</span></td></tr>
+</table></div>
+<div class="callout"><strong>Практическое правило решения:</strong> если после этапа 0B–0D и выноса reporting/notification метрики Core удовлетворяют SLA, остановиться на гибриде. Микросервисы не являются обязательным следующим уровнем зрелости.</div>
+</section>
+
+<section>
+<h2>13. Данные, которые нужны для уточнения решения</h2>
+<ul>
+<li><strong>RPS и SLA:</strong> по route groups, особенно public catalog, slots, appointment lists, reports и webhooks; p95/p99 и допустимая недоступность. Сейчас их нет.</li>
+<li><strong>DB:</strong> размер и рост таблиц, slow queries, locks, CPU/IOPS, <code>appointment_details</code> profile, допустимый replica lag.</li>
+<li><strong>Production schema:</strong> read-only dump prod/pre-prod; репозиторная dev-схема не является prod baseline.</li>
+<li><strong>Legacy:</strong> живые v1 routes по 2–4 неделям журналов и минимальные версии мобильных приложений.</li>
+<li><strong>Релизы:</strong> фактическая частота production deploy и время восстановления. Число коммитов в dev не является метрикой release frequency.</li>
+<li><strong>Web:</strong> план запуска сайта и ожидаемое соотношение web/mobile traffic; это влияет на срок BFF.</li>
+</ul>
+<p><span class="badge medium">[средняя]</span> До этих данных последовательность reporting → notifications → BFF опирается на связность и изоляцию ресурсов, а не на утверждение о фактической самой высокой нагрузке.</p>
+</section>
+
+<footer>
+<p>Метод: повторный обход Express routers на <code>dev@b88b2c3a</code>, чтение текущих composition roots, transactions, auth, cron, reports, wallet, web/admin code и существующего аудита. Полный список таблиц и исходные route groups сохранены в <span>инвентаризации</span>. В код приложения изменения не вносились.</p>
+</footer>
+</main></body></html>
