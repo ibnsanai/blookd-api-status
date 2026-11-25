@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>
+      Blookd API — поэтапный переход к гибридной архитектуре / Hybrid transition
+      plan
+    </title>
+    <style>
+      :root {
+        --bg: #f4f6fa;
+        --panel: #fff;
+        --ink: #172033;
+        --muted: #5d687b;
+        --line: #dce2ec;
+        --accent: #3157c8;
+        --ok: #14734b;
+        --warn: #955800;
+        --bad: #b42332;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          15px/1.58 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Arial,
+          sans-serif;
+      }
+      main {
+        width: min(1180px, calc(100% - 30px));
+        margin: 28px auto 50px;
+      }
+      header,
+      section {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 16px;
+      }
+      header {
+        border-top: 4px solid var(--accent);
+      }
+      h1 {
+        font-size: 30px;
+        margin: 0 0 10px;
+      }
+      h2 {
+        font-size: 23px;
+        margin: 0 0 14px;
+      }
+      h3 {
+        font-size: 18px;
+        margin: 20px 0 8px;
+      }
+      p,
+      li {
+        margin: 8px 0;
+      }
+      a {
+        color: var(--accent);
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .callout {
+        border-left: 4px solid var(--accent);
+        background: #f3f6ff;
+        padding: 14px 16px;
+        margin: 14px 0;
+      }
+      .warning {
+        border-left-color: var(--warn);
+        background: #fff8e8;
+      }
+      .danger {
+        border-left-color: var(--bad);
+        background: #fff0f1;
+      }
+      .success {
+        border-left-color: var(--ok);
+        background: #edf8f2;
+      }
+      .badge {
+        display: inline-block;
+        border-radius: 999px;
+        padding: 3px 9px;
+        font-size: 12px;
+        font-weight: 650;
+      }
+      .ok {
+        color: var(--ok);
+        background: #e8f6ef;
+      }
+      .warn {
+        color: var(--warn);
+        background: #fff4db;
+      }
+      .bad {
+        color: var(--bad);
+        background: #ffeaed;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 12px 0;
+      }
+      th,
+      td {
+        text-align: left;
+        vertical-align: top;
+        border-bottom: 1px solid var(--line);
+        padding: 10px;
+      }
+      th {
+        color: var(--muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      code {
+        background: #eef1f7;
+        border-radius: 3px;
+        padding: 1px 4px;
+      }
+      .stage {
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        padding: 18px;
+        margin: 14px 0;
+      }
+      .stage h3 {
+        margin-top: 0;
+      }
+      .cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .flow {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        margin: 14px 0;
+      }
+      .box {
+        border: 1px solid var(--accent);
+        border-radius: 8px;
+        padding: 9px 12px;
+        background: #f5f7ff;
+      }
+      .arrow {
+        color: var(--muted);
+      }
+      .lang {
+        border-bottom: 3px solid var(--accent);
+      }
+      footer {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      @media (max-width: 720px) {
+        main {
+          width: calc(100% - 16px);
+          margin-top: 10px;
+        }
+        header,
+        section {
+          padding: 15px;
+        }
+        .cols {
+          grid-template-columns: 1fr;
+        }
+        h1 {
+          font-size: 25px;
+        }
+      }
+      @media print {
+        body {
+          background: #fff;
+        }
+        main {
+          width: 100%;
+          margin: 0;
+        }
+        header,
+        section {
+          break-inside: avoid;
+        }
+        .lang {
+          break-before: page;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Blookd API — поэтапный переход к гибридной архитектуре</h1>
+        <p class="muted">
+          План для проектного менеджера · 25 ноября 2026 · Код
+          <code>dev@75beb25f</code>
+        </p>
+        <div class="callout">
+          <strong>Главная цель:</strong> получить преимущества отдельных
+          сервисов без заметного изменения для пользователей. Мы не «разрезаем»
+          систему одним релизом. Сначала закрываем риски, затем переносим по
+          одной небольшой функции, сравниваем результаты и оставляем возможность
+          немедленного возврата в монолит.
+        </div>
+        <p>
+          <a href="#ru">Русский</a> · <a href="#en">English</a> ·
+          <a href="hybrid-readiness-2026-11-25.html">Оценка готовности</a> ·
+          <a href="service-progress-2026-11-25.html">Сравнение с 08.11</a>
+        </p>
+      </header>
+
+      <section id="ru" class="lang">
+        <h2>1. Как будем двигаться</h2>
+        <div class="flow">
+          <span class="box">Безопасность</span><span class="arrow">→</span
+          ><span class="box">Измерения</span><span class="arrow">→</span
+          ><span class="box">Пилот</span><span class="arrow">→</span
+          ><span class="box">Отчёты</span><span class="arrow">→</span
+          ><span class="box">Уведомления</span><span class="arrow">→</span
+          ><span class="box">Web BFF</span><span class="arrow">→</span
+          ><span class="box">Решение по Core</span>
+        </div>
+        <div class="cols">
+          <div>
+            <h3>Что означает «гибрид»</h3>
+            <p>
+              Основные операции — записи, платежи, отмены, профили и вход —
+              остаются в модульном монолите. Отдельные процессы появляются
+              только там, где есть понятная выгода: тяжёлые отчёты, фоновые
+              уведомления и web-трафик.
+            </p>
+          </div>
+          <div>
+            <h3>Почему не полный распил</h3>
+            <p>
+              Booking, Payments и Cancellation связаны общими данными и
+              транзакциями. Их преждевременное разделение создаст сетевые
+              задержки и риск двойных списаний, но не даст независимых сервисов.
+            </p>
+          </div>
+        </div>
+        <h3>Правила для каждого этапа</h3>
+        <ul>
+          <li>
+            <strong>Сначала прежнее поведение:</strong> public URL, поля
+            ответов, статусы и ошибки не меняются.
+          </li>
+          <li>
+            <strong>Local по умолчанию:</strong> монолит работает без нового
+            сервиса.
+          </li>
+          <li>
+            <strong>Shadow перед переключением:</strong> пользователь получает
+            ответ монолита, а новый путь только сравнивает результат.
+          </li>
+          <li>
+            <strong>Маленькие cohorts:</strong> одна сущность или небольшой
+            процент трафика, затем постепенное расширение.
+          </li>
+          <li>
+            <strong>Обратимые изменения БД:</strong> сначала добавляем новое,
+            удаляем старое только после стабилизации.
+          </li>
+          <li>
+            <strong>Rollback без нового кода:</strong> конфигурация или nginx
+            возвращает local; один процесс за цикл стабилизации.
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>2. Этапы перехода</h2>
+        <div class="table-wrap">
+          <table>
+            <tr>
+              <th>Этап</th>
+              <th>Назначение</th>
+              <th>Что делает пользователь системы</th>
+              <th>Когда можно идти дальше</th>
+            </tr>
+            <tr>
+              <td><strong>0. Security gate</strong></td>
+              <td>Закрыть известные денежные и security-риски</td>
+              <td>Никаких изменений, кроме запрета опасных legacy-операций</td>
+              <td>Критические пути закрыты и проверены тестами</td>
+            </tr>
+            <tr>
+              <td><strong>1. Production readiness</strong></td>
+              <td>Владельцы, метрики, секреты, backup, alerts</td>
+              <td>Никаких изменений</td>
+              <td>Есть baseline и проверенный rollback</td>
+            </tr>
+            <tr>
+              <td><strong>2. Provider-share rehearsal</strong></td>
+              <td>Проверить сам механизм выноса на read-only операции</td>
+              <td>Те же профили и ссылки</td>
+              <td>Shadow без расхождений и успешный возврат local</td>
+            </tr>
+            <tr>
+              <td><strong>3. Reporting worker</strong></td>
+              <td>Вынести тяжёлые PDF/XLSX/email из API-процесса</td>
+              <td>Те же отчёты, суммы и сроки ответа</td>
+              <td>Отчёты совпадают; ресурсы API стабильны</td>
+            </tr>
+            <tr>
+              <td><strong>4. Notification worker</strong></td>
+              <td>Безопасно выполнять push/SMS/email вне API</td>
+              <td>Те же уведомления, без потерь и дублей</td>
+              <td>
+                Outbox полный, DLQ/alerts работают, retry без повторного эффекта
+              </td>
+            </tr>
+            <tr>
+              <td><strong>5. Web BFF</strong></td>
+              <td>Отделить web-трафик от мобильного/core</td>
+              <td>Те же URL, вход, сессии и каталог</td>
+              <td>
+                Каждая route group переключена и откачена без контрактных
+                изменений
+              </td>
+            </tr>
+            <tr>
+              <td><strong>6. Catalog projection — опционально</strong></td>
+              <td>Масштабировать публичные чтения при доказанной нагрузке</td>
+              <td>Те же данные; допустимая свежесть явно ограничена</td>
+              <td>
+                Projection сходится и перестраивается; выгода выше стоимости
+              </td>
+            </tr>
+            <tr>
+              <td><strong>7. Пересмотр Core</strong></td>
+              <td>Решить, нужен ли дальнейший split</td>
+              <td>Никаких изменений по умолчанию</td>
+              <td>Только при измеренной необходимости и независимых owners</td>
+            </tr>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>3. Подробности и критерии завершения</h2>
+        <div class="stage">
+          <h3>Этап 0. Закрыть обязательные security-риски</h3>
+          <p>
+            <strong>Работы:</strong> отключить или защитить
+            <code>createtransfers</code>; подтвердить production PAN/CVV flag и
+            purge; включить поэтапную миграцию паролей Argon2id; закрыть
+            достижимые SQL-инъекции; заменить public paths по сегментам на
+            точный реестр; отозвать APNs и старые секреты.
+          </p>
+          <p>
+            <strong>Зачем:</strong> распределённая система увеличивает число
+            точек доступа. Переносить открытые деньги, пароли и auth-обходы
+            нельзя.
+          </p>
+          <p class="success">
+            <strong>Готово:</strong> опасный transfer невозможен, production
+            CVV=0 по подтверждению, live SQL/auth тесты зелёные, секреты
+            отозваны, нет критических/high dependency advisories.
+          </p>
+        </div>
+
+        <div class="stage">
+          <h3>Этап 1. Подтвердить эксплуатационную готовность</h3>
+          <p>
+            <strong>Работы:</strong> назначить primary/backup owner; применить
+            sidecar migration; настроить private network, service credential, DB
+            least privilege, strict env; включить branch protection; проверить
+            backup/restore; настроить dashboard и реальные PagerDuty/Slack
+            routes.
+          </p>
+          <p>
+            <strong>Измерения:</strong> local DTO/404, RPS, p95/p99, error rate,
+            DB pool, живые v1 routes, отчёт по тяжёлым SQL. Снимок production
+            схемы обновляется по runbook.
+          </p>
+          <p class="success">
+            <strong>Готово:</strong> владелец принял runbook, alerts проверены
+            искусственным сбоем, baseline записан, restore и rollback выполнены
+            на target.
+          </p>
+        </div>
+
+        <div class="stage">
+          <h3>Этап 2. Provider-share — репетиция механизма</h3>
+          <p>
+            <strong>Почему этот шов:</strong> только чтение небольшого DTO, нет
+            платежей, auth-решений или внешних эффектов. Обе стороны читают одну
+            MySQL-схему, поэтому откат не требует обратной синхронизации.
+          </p>
+          <ol>
+            <li>
+              Запустить отдельный image в <code>local</code>, проверить
+              health/readiness.
+            </li>
+            <li>Включить shadow на одном slug, затем на небольшой доле.</li>
+            <li>Сравнить DTO, 404, latency, errors и side effects.</li>
+            <li>
+              Включить remote для одного slug, затем постепенно увеличить
+              cohort.
+            </li>
+            <li>
+              Несколько раз вернуть local конфигурацией и проверить отсутствие
+              remote-зависимости.
+            </li>
+          </ol>
+          <p class="success">
+            <strong>Готово:</strong> ноль необъяснённых mismatches, remote
+            errors ниже бюджета, rollback задокументирован. Затем 14 дней 100%
+            remote. Contract и удаление local только после этого.
+          </p>
+        </div>
+
+        <div class="stage">
+          <h3>Этап 3. Reporting worker — первый реальный workload</h3>
+          <p>
+            <strong>Почему:</strong> PDF/XLSX потребляют CPU и память и могут
+            мешать API. Это уже выделенная задача с read-only доступом к данным.
+          </p>
+          <p>
+            <strong>Работы:</strong> internal API с service credential;
+            read-only primary DB user; сравнение PDF/XLSX и финансовых сумм;
+            sandbox email; ограничение параллелизма и timeout;
+            <code>REPORT_EXECUTION=local|remote</code>. Async jobs и read
+            replica — отдельное позднее решение.
+          </p>
+          <p class="success">
+            <strong>Готово:</strong> побайтовая или структурная parity, прежние
+            200/400/403/429/500, стабильная память Core, неделя без регрессий,
+            rollback local.
+          </p>
+        </div>
+
+        <div class="stage">
+          <h3>Этап 4. Notification worker</h3>
+          <p>
+            <strong>Почему не раньше:</strong> уведомления создают внешние
+            эффекты. Потеря или повтор события уже заметна пользователю.
+          </p>
+          <p>
+            <strong>Работы:</strong> каждый producer пишет business row + outbox
+            в одной транзакции; один notification writer; idempotent consumer;
+            retry/backoff/DLQ/replay; projections для device/booking context;
+            перенос scheduler после <code>CRON_LOCKS_MODE=shadow</code> и
+            <code>on</code>; process-kill rehearsal.
+          </p>
+          <p class="success">
+            <strong>Готово:</strong> crash между commit и delivery не теряет
+            событие; replay не дублирует эффект; старый cron выключен; DLQ и lag
+            видны; неделя стабильной работы.
+          </p>
+        </div>
+
+        <div class="stage">
+          <h3>Этап 5. Web BFF</h3>
+          <p>
+            <strong>Работы:</strong> Identity/Provider internal commands вместо
+            прямых writes; один owner account/session; BFF владеет только
+            web-specific tables; nginx переключает web-auth, web-push, public и
+            app-links отдельными группами; gateway удаляет внешние internal
+            headers.
+          </p>
+          <p class="success">
+            <strong>Готово:</strong> web/mobile tokens не смешиваются, admin
+            sign-out сохраняет эффект, catalog/ETag/cookies/headers совпадают,
+            каждая группа имеет parallel run и nginx rollback.
+          </p>
+        </div>
+
+        <div class="stage">
+          <h3>Этап 6. Public catalog — только по измеренной необходимости</h3>
+          <p>
+            Отдельный сервис оправдан только при доказанной read-нагрузке или
+            самостоятельных требованиях масштабирования. Создаётся versioned
+            read model, rebuild/checkpoint и мониторинг lag. Исходные
+            provider/booking tables остаются собственностью Core.
+          </p>
+          <p class="success">
+            <strong>Готово:</strong> source/projection сходятся, rebuild
+            повторяем, свежесть в пределах согласованного SLA, выгода превышает
+            эксплуатационную стоимость.
+          </p>
+        </div>
+
+        <div class="stage">
+          <h3>Этап 7. Пересмотр Booking/Payments/Cancellation</h3>
+          <p>
+            Это не плановый обязательный split. Он возможен только после
+            удаления cross-domain SQL/transactions, появления Payment API,
+            saga/reconciliation, независимых data owners и failure drills против
+            double charge/lost booking.
+          </p>
+          <p class="warning">
+            <strong>Решение по умолчанию:</strong> оставить модульный монолит.
+            Если Core удовлетворяет SLA, гибрид — конечная цель, а не
+            промежуточная ступень к полному распилу.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>4. Что остаётся в монолите</h2>
+        <ul>
+          <li>Booking, Payments, Cancellation и Wallet core.</li>
+          <li>Identity/Cognito integration и provider account.</li>
+          <li>Admin lifecycle с атомарными cross-table transactions.</li>
+          <li>
+            Provider profile/scheduling до появления независимых read/write
+            contracts.
+          </li>
+          <li>
+            Hair-guard orchestration: Python rendering уже отдельный сервис.
+          </li>
+        </ul>
+        <div class="callout warning">
+          <strong>Не вводим сейчас:</strong> Kubernetes, Kafka, service mesh,
+          отдельный Auth service и физические БД для каждого домена. Для текущей
+          команды это увеличит сложность быстрее, чем надёжность.
+        </div>
+      </section>
+
+      <section>
+        <h2>5. Контрольный список проектного менеджера</h2>
+        <ul>
+          <li>Есть владелец результата и понятная бизнес-причина выноса.</li>
+          <li>
+            Есть baseline до изменений и публичный контракт, который нельзя
+            менять.
+          </li>
+          <li>Есть тесты parity, shadow и отчёт о расхождениях.</li>
+          <li>Есть флаги local/remote и проверенный rollback.</li>
+          <li>Есть backup, миграции expand/contract и алерты.</li>
+          <li>
+            Есть период стабилизации; следующий процесс не начинается раньше.
+          </li>
+          <li>
+            Contract-миграции и удаление local выполняются отдельными поздними
+            решениями.
+          </li>
+        </ul>
+      </section>
+
+      <section id="en" class="lang">
+        <h2>Hybrid transition plan — plain English</h2>
+        <p class="muted">
+          For project management · 25 November 2026 · Current code
+          <code>dev@75beb25f</code>. This is a staged plan, not a production
+          approval.
+        </p>
+        <div class="callout">
+          <strong>Objective:</strong> gain the benefits of selected services
+          without visible user impact. We will not split the platform in one
+          release. Each small extraction starts in local mode, is compared with
+          current behavior, rolled out gradually, and can be reversed through
+          configuration.
+        </div>
+        <h3>Target approach</h3>
+        <p>
+          Booking, payments, cancellations, profiles, and sign-in remain in a
+          modular monolith. Separate processes are introduced only for clear
+          operational benefits: heavy reports, background notifications, and web
+          traffic. This avoids a distributed monolith around shared
+          booking/payment transactions.
+        </p>
+        <h3>Rules that protect users</h3>
+        <ul>
+          <li>
+            Existing URLs, response fields, statuses, errors, and v1 encryption
+            remain compatible.
+          </li>
+          <li>
+            Local is always the default and has no dependency on the new
+            service.
+          </li>
+          <li>
+            Shadow compares results while the monolith still serves the user.
+          </li>
+          <li>Rollout starts with one entity or a small traffic cohort.</li>
+          <li>
+            Database changes are additive first; old structures are removed only
+            after stabilization.
+          </li>
+          <li>
+            Rollback uses configuration or nginx, not a new business-code
+            deployment.
+          </li>
+        </ul>
+        <h3>Stage 0 — Close security blockers</h3>
+        <p>
+          Disable or protect <code>createtransfers</code>; confirm the
+          production PAN/CVV flag and purge; roll out Argon2id migration; close
+          reachable SQL injection paths; replace path-segment bypass with an
+          exact public-route registry; rotate APNs and historical secrets.
+          Distributed entry points must not inherit open money, password, and
+          authentication risks.
+        </p>
+        <p class="success">
+          <strong>Exit:</strong> unauthorized transfer is impossible, production
+          CVV is confirmed zero, live SQL/auth tests pass, secrets are revoked,
+          and no critical/high dependency advisories remain.
+        </p>
+        <h3>Stage 1 — Prove operational readiness</h3>
+        <p>
+          Assign primary/backup owners, apply the sidecar migration, configure
+          private networking, service credentials, least-privilege DB access,
+          strict environment validation, branch protection, dashboards, and real
+          alert routes. Rehearse backup/restore and migration rollback on the
+          target. Record DTO/404, RPS, p95/p99, error, DB-pool, and live-v1
+          baselines.
+        </p>
+        <p class="success">
+          <strong>Exit:</strong> the owner accepts the runbooks, alerts are
+          tested, baselines are attached, and target rollback succeeds.
+        </p>
+        <h3>Stage 2 — Rehearse with provider-share</h3>
+        <p>
+          This read-only lookup has no payment, authorization, or external side
+          effects. Both runtimes read the same MySQL schema, so rollback needs
+          no data resynchronization. Start the separate image in local, enable
+          shadow for one slug and then a small cohort, compare
+          DTO/404/latency/errors, enable remote gradually, and repeatedly return
+          to local through configuration.
+        </p>
+        <p class="success">
+          <strong>Exit:</strong> zero unexplained mismatches, error budget met,
+          documented rollback. Then complete 14 days at 100% remote before any
+          contract migration or local-path removal.
+        </p>
+        <h3>Stage 3 — Move reporting workload</h3>
+        <p>
+          Move PDF/XLSX generation out of the API process to isolate CPU and
+          memory. Use an authenticated internal API, a read-only primary DB
+          user, PDF/XLSX and amount parity checks, email sandboxing, bounded
+          concurrency/timeouts, and <code>REPORT_EXECUTION=local|remote</code>.
+          Async jobs and replicas are separate later decisions.
+        </p>
+        <p class="success">
+          <strong>Exit:</strong> matching reports and status contracts, stable
+          Core memory, one regression-free week, proven local rollback.
+        </p>
+        <h3>Stage 4 — Move notification delivery</h3>
+        <p>
+          Every producer must write the business row and outbox event in one
+          transaction. Use one notification writer, idempotent consumers,
+          retry/backoff/DLQ/replay, device/booking projections, and staged
+          cron-lock activation. Rehearse an actual process kill and recovery.
+        </p>
+        <p class="success">
+          <strong>Exit:</strong> no event loss after a crash, no duplicate
+          effect on replay, old cron disabled, visible lag/DLQ, one stable week.
+        </p>
+        <h3>Stage 5 — Introduce Web BFF</h3>
+        <p>
+          Replace direct account/session writes with Identity/Provider internal
+          commands. The BFF owns only web-specific tables. Move web-auth,
+          web-push, public catalog, and app-links as separate nginx route groups
+          with independent rollback. Strip external internal headers and
+          preserve token, cookie, ETag, and admin sign-out behavior.
+        </p>
+        <p class="success">
+          <strong>Exit:</strong> web and mobile tokens remain isolated, response
+          contracts match, every group passes parallel run and nginx rollback.
+        </p>
+        <h3>Stage 6 — Optional catalog projection</h3>
+        <p>
+          Build a separate catalog read service only when measured read traffic
+          or independent scaling needs justify it. Use a versioned read model,
+          rebuild checkpoints, freshness monitoring, and source/projection
+          reconciliation. Core keeps ownership of provider and booking data.
+        </p>
+        <h3>Stage 7 — Reassess the core, do not split by default</h3>
+        <p>
+          Booking/Payments/Cancellation is not a planned mandatory extraction.
+          It requires independent data ownership, Payment APIs,
+          saga/reconciliation, removal of cross-domain SQL/transactions, and
+          failure drills proving no double charge or lost booking. If Core meets
+          the SLA, the hybrid is the final architecture, not a step toward a
+          mandatory full split.
+        </p>
+        <h3>What we are not introducing now</h3>
+        <p>
+          Kubernetes, Kafka, a service mesh, a new Auth service, and one
+          physical database per domain. The current team does not need that
+          operational complexity. We will also keep booking/payment core,
+          provider account/scheduling, admin lifecycle, and hair-guard
+          orchestration in the existing modular system.
+        </p>
+        <h3>Project manager checklist for every stage</h3>
+        <ul>
+          <li>Named owner and measured business reason.</li>
+          <li>Baseline and immutable public compatibility contract.</li>
+          <li>Parity tests, shadow evidence, and mismatch report.</li>
+          <li>Local/remote configuration and a rehearsed rollback.</li>
+          <li>Backup, expand/contract migrations, dashboards, and alerts.</li>
+          <li>
+            Stabilization window before another process or any contract cleanup.
+          </li>
+        </ul>
+      </section>
+
+      <footer>
+        <p>
+          Источники:
+          <a
+            href="https://github.com/blookd24/API/blob/dev/docs/audit/history/2026-11-25/hybrid-readiness.md"
+            >текущий аудит</a
+          >,
+          <a
+            href="https://github.com/blookd24/API/tree/dev/docs/platform/extraction"
+            >extraction runbooks</a
+          >,
+          <a href="microservices-strategy-2026-11-09.html">стратегия 09.11</a>.
+        </p>
+        <p>
+          English: sources include the current readiness assessment, extraction
+          runbooks, and the 9 November strategy. No production deployment is
+          implied by this plan.
+        </p>
+      </footer>
+    </main>
+  </body>
+</html>

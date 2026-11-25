@@ -1,0 +1,841 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>
+      Blookd API — готовность к гибридной архитектуре / Hybrid readiness
+    </title>
+    <style>
+      :root {
+        --bg: #f4f6fa;
+        --panel: #fff;
+        --ink: #172033;
+        --muted: #5d687b;
+        --line: #dce2ec;
+        --accent: #3157c8;
+        --ok: #14734b;
+        --warn: #955800;
+        --bad: #b42332;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          15px/1.57 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Arial,
+          sans-serif;
+      }
+      main {
+        width: min(1240px, calc(100% - 30px));
+        margin: 28px auto 50px;
+      }
+      header,
+      section {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 16px;
+      }
+      header {
+        border-top: 4px solid var(--accent);
+      }
+      h1 {
+        font-size: 30px;
+        margin: 0 0 10px;
+      }
+      h2 {
+        font-size: 23px;
+        margin: 0 0 14px;
+      }
+      h3 {
+        font-size: 18px;
+        margin: 20px 0 8px;
+      }
+      p,
+      li {
+        margin: 8px 0;
+      }
+      a {
+        color: var(--accent);
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .callout {
+        border-left: 4px solid var(--accent);
+        background: #f3f6ff;
+        padding: 14px 16px;
+        margin: 14px 0;
+      }
+      .warning {
+        border-left-color: var(--warn);
+        background: #fff8e8;
+      }
+      .danger {
+        border-left-color: var(--bad);
+        background: #fff0f1;
+      }
+      .success {
+        border-left-color: var(--ok);
+        background: #edf8f2;
+      }
+      .badge {
+        display: inline-block;
+        border-radius: 999px;
+        padding: 3px 9px;
+        font-size: 12px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+      .ok {
+        color: var(--ok);
+        background: #e8f6ef;
+      }
+      .warn {
+        color: var(--warn);
+        background: #fff4db;
+      }
+      .bad {
+        color: var(--bad);
+        background: #ffeaed;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 12px 0;
+      }
+      th,
+      td {
+        text-align: left;
+        vertical-align: top;
+        border-bottom: 1px solid var(--line);
+        padding: 10px;
+      }
+      th {
+        color: var(--muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      td:nth-child(2) {
+        white-space: nowrap;
+      }
+      code {
+        background: #eef1f7;
+        border-radius: 3px;
+        padding: 1px 4px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin: 16px 0;
+      }
+      .metric {
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        padding: 12px;
+      }
+      .metric strong {
+        display: block;
+        font-size: 22px;
+      }
+      .metric span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .lang {
+        border-bottom: 3px solid var(--accent);
+      }
+      footer {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      @media (max-width: 780px) {
+        .grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        main {
+          width: calc(100% - 16px);
+          margin-top: 10px;
+        }
+        header,
+        section {
+          padding: 15px;
+        }
+        h1 {
+          font-size: 25px;
+        }
+        td:nth-child(2) {
+          white-space: normal;
+        }
+      }
+      @media print {
+        body {
+          background: #fff;
+        }
+        main {
+          width: 100%;
+          margin: 0;
+        }
+        header,
+        section {
+          break-inside: avoid;
+        }
+        .lang {
+          break-before: page;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Blookd API — готовность к гибридной архитектуре</h1>
+        <p class="muted">
+          Глубокая оценка восьми направлений · 25 ноября 2026 ·
+          <code>dev@75beb25f</code>
+        </p>
+        <div class="callout">
+          <strong>Вывод:</strong> инженерная подготовка выполнена примерно на
+          <strong>80%</strong>, операционная готовность к реальному
+          production-переходу — на <strong>60–65%</strong>. Начинать можно
+          только с контролируемого provider-share пилота после security и
+          operational gates. Полный распил Booking/Payments/Cancellation сейчас
+          недопустим.
+        </div>
+        <p>
+          <a href="#ru">Русский</a> · <a href="#en">English</a> ·
+          <a href="hybrid-transition-plan-2026-11-25.html">Поэтапный план</a> ·
+          <a href="service-progress-2026-11-25.html">Краткий срез</a>
+        </p>
+        <div class="grid">
+          <div class="metric">
+            <strong>4125 / 4126</strong><span>unit passed · 1 skipped</span>
+          </div>
+          <div class="metric">
+            <strong>1374 / 1374</strong><span>API passed</span>
+          </div>
+          <div class="metric">
+            <strong>48</strong><span>legacy imports в baseline</span>
+          </div>
+          <div class="metric">
+            <strong>0</strong><span>production remote запущен</span>
+          </div>
+        </div>
+      </header>
+
+      <section id="ru" class="lang">
+        <h2>1. Как проверяли</h2>
+        <ul>
+          <li>
+            Сопоставлены исходный аудит, snapshot 08.11, стратегия 09.11,
+            история и все новые программы подготовки.
+          </li>
+          <li>
+            Проверены текущие production/auth/security paths, миграции и модели,
+            shared writers, outbox/cron config, runtime, CI и extraction.
+          </li>
+          <li>
+            После ближайшего к snapshot коммита <code>b88b2c3a</code>:
+            <strong>174 коммита, 610 файлов</strong>. Это включает и
+            бизнес-функции.
+          </li>
+          <li>
+            Live router load: <strong>294 v2/v3/web routes, 0 ошибок</strong>.
+            Spec files: <strong>401 unit + 127 API = 528</strong>.
+          </li>
+        </ul>
+        <p class="muted">
+          Проценты — экспертная оценка готовности, а не code coverage.
+          Production RPS/SLA, реальные данные, live v1 и alert delivery не
+          проверялись. Это не production approval.
+        </p>
+      </section>
+
+      <section>
+        <h2>2. Восемь направлений: сколько сделано</h2>
+        <div class="table-wrap">
+          <table>
+            <tr>
+              <th>Направление</th>
+              <th>Готово</th>
+              <th>Что изменилось</th>
+              <th>Остаток</th>
+            </tr>
+            <tr>
+              <td>1. Безопасность</td>
+              <td><span class="badge warn">75%</span></td>
+              <td>
+                Owner guards, atomic wallet, CVV zeroing/redaction, Argon2id,
+                runtime secrets, scrub/artifact gates; критические/high
+                advisories устранены
+              </td>
+              <td>
+                <code>createtransfers</code>, приём PAN/CVV, password rollout,
+                path-segment bypass, живые raw SQL, APNs rotation, 14 moderate
+              </td>
+            </tr>
+            <tr>
+              <td>2. БД</td>
+              <td><span class="badge ok">85%</span></td>
+              <td>
+                Production DDL 133+4, clean/prod CI, backup/restore, collation,
+                geo types, retention, rollback
+              </td>
+              <td>
+                61 legacy table без tracked DDL, <code>booking_id</code>,
+                реальные integrity counts, index usage/EXPLAIN, legacy types
+              </td>
+            </tr>
+            <tr>
+              <td>3. Модульные границы</td>
+              <td><span class="badge ok">80%</span></td>
+              <td>
+                Hub удалён; critical cycles=0; wallet/session owners; guard
+                error-mode; scoped foreign writes=0
+              </td>
+              <td>
+                48 imports, shared appointments/payments/location/notification
+                writers, legacy god objects
+              </td>
+            </tr>
+            <tr>
+              <td>4. Consistency/async</td>
+              <td><span class="badge warn">75%</span></td>
+              <td>
+                Outbox, processed events, retry/DLQ/replay, Stripe
+                reconciliation, cron leases, external-call AST guard
+              </td>
+              <td>
+                Outbox/cron locks off; producer только payment attempts; direct
+                notification writers; не все consumers idempotent
+              </td>
+            </tr>
+            <tr>
+              <td>5. Производительность</td>
+              <td><span class="badge warn">70%</span></td>
+              <td>
+                Availability 96→6 queries, light homescreen, O(1) reports,
+                block-list 2→1, batch updates
+              </td>
+              <td>
+                Нет нового production p95/p99/RPS; broad appointment view,
+                Cognito per request, index evidence, 4 pools
+              </td>
+            </tr>
+            <tr>
+              <td>6. Runtime/observability</td>
+              <td><span class="badge ok">90%</span></td>
+              <td>
+                Compiled JS, strict env, safe 500, health/readiness, graceful
+                shutdown, correlation, metrics, alerts
+              </td>
+              <td>
+                Проверить реальные deploy/alert routes; нет distributed trace
+                backend; APNs rotation; baseline только собирается
+              </td>
+            </tr>
+            <tr>
+              <td>7. CI и тесты</td>
+              <td><span class="badge ok">95%</span></td>
+              <td>
+                Все unit/API зелёные; baselines пусты; contracts,
+                characterization, failure/migration/artifact guards
+              </td>
+              <td>
+                Branch protection администратором; lint advisory; crash
+                simulated; production rehearsal отдельно
+              </td>
+            </tr>
+            <tr>
+              <td>8. Обратимый вынос</td>
+              <td><span class="badge ok">85%</span></td>
+              <td>
+                Pilot image, local/remote, cohort rollout, expand/contract,
+                shadow/mismatch store, source+compiled rollback
+              </td>
+              <td>
+                Owner UNASSIGNED, нет target baseline/real shadow/remote/alerts
+                и 14-day stabilization
+              </td>
+            </tr>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>3. Обязательные блокеры перед production-пилотом</h2>
+        <div class="danger">
+          <h3>Безопасность людей и денег</h3>
+          <ol>
+            <li>
+              <strong><code>createtransfers</code>:</strong>
+              <code>route.js:2573-2594</code> принимает произвольные
+              amount/account_id, <code>config/payment.js:309-321</code> делает
+              Stripe transfer без ownership. Отключить или ограничить и
+              проверить тестом.
+            </li>
+            <li>
+              <strong>PAN/CVV:</strong> сохранение CVV заменено на 0, но legacy
+              приём включён по умолчанию
+              (<code>legacy-card-entry.guard.js:15</code>). Подтвердить
+              production flag и выполнить
+              <code>docs/security/pan-purge-plan.md</code>; колонку удалить
+              отдельным поздним contract-релизом.
+            </li>
+            <li>
+              <strong>Пароли:</strong> Argon2id и lazy upgrade есть, но нужен
+              явный <code>PASSWORD_HASH_MIGRATION_ENABLED=true</code> и план для
+              оставшихся AES-записей.
+            </li>
+            <li>
+              <strong>Auth bypass:</strong>
+              <code>auth.ts:9-21,38-42</code> пропускает проверку по любому
+              совпавшему сегменту. Нужен exact method+template registry и
+              deny-by-default tests.
+            </li>
+            <li>
+              <strong>SQL:</strong> большая часть закрыта, но generic
+              conditions/concatenation в <code>config/common.js</code> остаются.
+              Закрыть все достижимые пути, не считать только количество
+              исправлений.
+            </li>
+            <li>
+              <strong>Секреты:</strong> APNs key из git history требует ротации;
+              DOTENV_KEY больше не в image, но исторические секреты нужно
+              отозвать.
+            </li>
+          </ol>
+        </div>
+        <div class="warning">
+          <h3>Operational gates provider-share</h3>
+          <ol>
+            <li>Назначить primary/backup owner.</li>
+            <li>
+              Применить sidecar migration на target; не применять contract.
+            </li>
+            <li>
+              Настроить private network, service credential, DB least privilege,
+              strict env.
+            </li>
+            <li>
+              Записать local DTO/404, RPS, p95/p99, errors; настроить dashboard
+              и реальные alerts.
+            </li>
+            <li>
+              Проверить migration rollback/reapply и сохранить backup evidence.
+            </li>
+            <li>Подтвердить required branch protection администратором.</li>
+            <li>
+              Пройти <code>local → shadow → remote cohort → local</code> на
+              target и записать mismatches=0, side effects=0 и время.
+            </li>
+            <li>
+              Увеличивать cohort постепенно; 14 дней 100% remote до
+              contract/local removal.
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section>
+        <h2>4. Блокеры следующих этапов</h2>
+        <div class="table-wrap">
+          <table>
+            <tr>
+              <th>Этап</th>
+              <th>Что обязательно закрыть до него</th>
+            </tr>
+            <tr>
+              <td><strong>Reporting worker</strong></td>
+              <td>
+                Report parity, read-only DB user, resource baseline, sandbox для
+                email/PDF/XLSX, local|remote rollback.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Notification worker</strong></td>
+              <td>
+                Все producers в same-transaction outbox, один notification
+                writer, provider idempotency/reconciliation, cron locks on после
+                shadow, process-kill rehearsal, DLQ/alerts.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Web BFF</strong></td>
+              <td>
+                Exact public routes, Identity anti-corruption API, один
+                account/session writer, web/mobile token contracts, nginx
+                rollback по route groups.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Core</strong></td>
+              <td>
+                Никакого выноса сейчас: сначала independent data owners, no
+                cross-domain SQL/transactions, saga/reconciliation, failure
+                drills и owners.
+              </td>
+            </tr>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>5. Старые задачи: что исправлено, что нет</h2>
+        <div class="table-wrap">
+          <table>
+            <tr>
+              <th>Статус</th>
+              <th>ID из предыдущего аудита</th>
+            </tr>
+            <tr>
+              <td><span class="badge ok">Fixed / substantially fixed</span></td>
+              <td>
+                P-04, P-07 (critical/high; moderate остаются), P-23, P-24, P-25,
+                P-28, P-30, P-32, P-50, N-1, N-2, N-3, N-5, N-11, N-12, N-13,
+                N-14
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge warn">Partial</span></td>
+              <td>
+                P-01, P-02, P-03, P-07, P-11, P-12, P-13, P-14, P-15, P-16,
+                P-17, P-18, P-19, P-20, P-26, P-29, P-33, P-34, P-35, P-39,
+                P-40, P-41, P-47, N-4, N-6, N-7, N-8, N-9, N-16
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge bad">Open</span></td>
+              <td>
+                P-05, P-06, P-08, P-09, P-10, P-21, P-22, P-27, P-31, P-36,
+                P-37, P-38, P-42, P-43, P-44, P-45, P-46, P-48, P-49, N-10, N-15
+              </td>
+            </tr>
+          </table>
+        </div>
+        <p>
+          <strong>Уточнения:</strong> production baseline уже есть; CI зелёный,
+          но branch protection отдельно; outbox/cron locks есть, но выключены;
+          <code>ProductPurchase.booking_id</code> всё ещё в модели; `/metrics`
+          не заменяет production RPS и live-v1 отчёт.
+        </p>
+      </section>
+
+      <section>
+        <h2>6. Насколько готов сервис в целом</h2>
+        <p>
+          <strong>Код и механизмы:</strong> зрелая основа для постепенного
+          гибрида. Получены реальные доказательства тестами, миграциями,
+          architecture guards и rollback rehearsal.
+        </p>
+        <p>
+          <strong>Production:</strong> ещё нет подтверждения безопасного
+          переключения. Нельзя ставить статус «готово к микросервисам» по числу
+          закрытых программ.
+        </p>
+        <p>
+          <strong>Решение:</strong> security gate → operational gate →
+          provider-share rehearsal → reporting → notifications → Web BFF →
+          optional catalog. Booking/Payments/Cancellation остаются в модульном
+          монолите до новых доказательств и независимых owners.
+        </p>
+      </section>
+
+      <section id="en" class="lang">
+        <h2>Hybrid readiness — detailed assessment</h2>
+        <p class="muted">
+          For project management · 25 November 2026 · <code>dev@75beb25f</code>.
+          This is not a production approval.
+        </p>
+        <div class="callout">
+          <strong>Verdict:</strong> engineering preparation is approximately
+          <strong>80%</strong> complete; operational production readiness is
+          approximately <strong>60–65%</strong>. Only a controlled
+          provider-share pilot is reasonable after the security and operational
+          gates. Booking/Payments/Cancellation must not be split now.
+        </div>
+        <h3>Method and evidence</h3>
+        <ul>
+          <li>
+            Compared the original audit, the 8 November snapshot, the 9 November
+            strategy, and all subsequent security, DB, architecture,
+            reliability, performance, runtime, CI, and extraction programs.
+          </li>
+          <li>
+            Inspected current production/auth/security code, migrations/models,
+            shared writers, outbox/cron defaults, runtime, CI, and extraction
+            behavior.
+          </li>
+          <li>
+            Reviewed 174 commits and 610 changed files since the closest
+            snapshot commit <code>b88b2c3a</code>.
+          </li>
+          <li>
+            Loaded 294 v2/v3/web routes with zero errors. Counted 401 unit and
+            127 API spec files.
+          </li>
+        </ul>
+        <p class="muted">
+          Percentages are expert readiness estimates, not code coverage.
+          Production RPS/SLA, real data, live-v1 use, and alert delivery were
+          not verified.
+        </p>
+        <h3>Readiness by workstream</h3>
+        <div class="table-wrap">
+          <table>
+            <tr>
+              <th>Area</th>
+              <th>Ready</th>
+              <th>Delivered</th>
+              <th>Remaining</th>
+            </tr>
+            <tr>
+              <td>Security</td>
+              <td>75%</td>
+              <td>
+                Owner guards, atomic wallet, CVV zeroing/redaction, Argon2id,
+                runtime secrets, scrub/artifact gates; no critical/high
+                advisories
+              </td>
+              <td>
+                createtransfers, PAN/CVV acceptance, password rollout, path
+                bypass, live raw SQL, APNs rotation, 14 moderate
+              </td>
+            </tr>
+            <tr>
+              <td>Database</td>
+              <td>85%</td>
+              <td>
+                Production DDL 133+4, clean/prod CI, backup/restore, collation,
+                geo types, retention, rollback
+              </td>
+              <td>
+                61 untracked legacy tables, booking_id, real integrity counts,
+                index evidence, legacy types
+              </td>
+            </tr>
+            <tr>
+              <td>Module boundaries</td>
+              <td>80%</td>
+              <td>
+                Hub removed, critical cycles=0, wallet/session owners, blocking
+                architecture guard, scoped foreign writes=0
+              </td>
+              <td>48 imports, shared writers, legacy god objects</td>
+            </tr>
+            <tr>
+              <td>Consistency/async</td>
+              <td>75%</td>
+              <td>
+                Outbox, processed events, retry/DLQ/replay, Stripe
+                reconciliation, cron leases, transaction AST guard
+              </td>
+              <td>
+                Outbox/cron locks off; payment attempts only producer; direct
+                notification writers
+              </td>
+            </tr>
+            <tr>
+              <td>Performance</td>
+              <td>70%</td>
+              <td>
+                Availability 96→6 queries, light homescreen, constant-location
+                reports, block-list 2→1, batch updates
+              </td>
+              <td>
+                No fresh production latency/RPS, broad appointment view, Cognito
+                per request, index evidence, four pools
+              </td>
+            </tr>
+            <tr>
+              <td>Runtime/observability</td>
+              <td>90%</td>
+              <td>
+                Compiled JS, strict env, safe 500, health/readiness, graceful
+                shutdown, correlation, metrics, alerts
+              </td>
+              <td>
+                Verify real deploy/alert routes, no distributed tracing backend,
+                APNs rotation, baseline collection only
+              </td>
+            </tr>
+            <tr>
+              <td>CI/tests</td>
+              <td>95%</td>
+              <td>
+                All unit/API tests green, empty baselines,
+                contract/characterization/failure/migration/artifact guards
+              </td>
+              <td>
+                Administrator branch protection, advisory lint, simulated crash,
+                separate production rehearsal
+              </td>
+            </tr>
+            <tr>
+              <td>Reversible extraction</td>
+              <td>85%</td>
+              <td>
+                Pilot image, local/remote, cohort rollout, expand/contract,
+                shadow/mismatch store, source+compiled rollback
+              </td>
+              <td>
+                Owner unassigned, no target baseline/real
+                shadow/remote/alerts/14-day stabilization
+              </td>
+            </tr>
+          </table>
+        </div>
+        <h3>Mandatory security blockers before the pilot</h3>
+        <ol>
+          <li>
+            <strong>createtransfers:</strong> arbitrary amount/account_id
+            reaches Stripe transfer without an ownership check. Disable or
+            protect it and add regression coverage.
+          </li>
+          <li>
+            <strong>PAN/CVV:</strong> stored CVV is forced to zero, but legacy
+            acceptance is enabled by default. Confirm the production flag,
+            execute the purge plan, and remove the column only in a later
+            contract release.
+          </li>
+          <li>
+            <strong>Passwords:</strong> enable staged Argon2id migration and
+            define handling for remaining AES records.
+          </li>
+          <li>
+            <strong>Authentication:</strong> replace path-segment bypass with
+            exact method+template public routes and deny-by-default tests.
+          </li>
+          <li>
+            <strong>SQL:</strong> close every reachable injection path; generic
+            concatenated conditions remain in legacy helpers.
+          </li>
+          <li>
+            <strong>Secrets:</strong> rotate the committed APNs key and other
+            historical secrets. DOTENV_KEY is no longer baked into the image.
+          </li>
+        </ol>
+        <h3>Mandatory operational gates for provider-share</h3>
+        <ol>
+          <li>Assign primary/backup owners.</li>
+          <li>
+            Apply the sidecar migration, never the contract script, on the
+            target.
+          </li>
+          <li>
+            Configure private networking, service credentials, least-privilege
+            DB access, and strict environment validation.
+          </li>
+          <li>
+            Record local DTO/404, RPS, p95/p99, and errors; configure and test
+            dashboards and alert routes.
+          </li>
+          <li>Prove migration rollback/reapply and retain backup evidence.</li>
+          <li>Have an administrator confirm required branch protection.</li>
+          <li>
+            Complete target
+            <code>local → shadow → remote cohort → local</code> with zero
+            mismatches and external effects.
+          </li>
+          <li>
+            Expand gradually and complete 14 days at 100% remote before contract
+            cleanup or local-path removal.
+          </li>
+        </ol>
+        <h3>Blockers for subsequent stages</h3>
+        <ul>
+          <li>
+            <strong>Reporting:</strong> report parity, read-only DB user,
+            resource baseline, effect sandbox, and rollback.
+          </li>
+          <li>
+            <strong>Notifications:</strong> all producers in same-transaction
+            outbox, one writer, provider idempotency/reconciliation, staged cron
+            locks, real process-kill rehearsal, DLQ/alerts.
+          </li>
+          <li>
+            <strong>Web BFF:</strong> exact public routes, Identity
+            anti-corruption API, one account/session writer, token
+            compatibility, and nginx group rollback.
+          </li>
+          <li>
+            <strong>Core:</strong> no extraction until data ownership is
+            independent, cross-domain SQL/transactions are removed, and
+            saga/reconciliation and failure drills exist.
+          </li>
+        </ul>
+        <h3>Previous findings status</h3>
+        <div class="table-wrap">
+          <table>
+            <tr>
+              <th>Status</th>
+              <th>Finding IDs</th>
+            </tr>
+            <tr>
+              <td>Fixed / substantially fixed</td>
+              <td>
+                P-04, P-07 (critical/high only), P-23, P-24, P-25, P-28, P-30,
+                P-32, P-50, N-1, N-2, N-3, N-5, N-11, N-12, N-13, N-14
+              </td>
+            </tr>
+            <tr>
+              <td>Partial</td>
+              <td>
+                P-01, P-02, P-03, P-07, P-11, P-12, P-13, P-14, P-15, P-16,
+                P-17, P-18, P-19, P-20, P-26, P-29, P-33, P-34, P-35, P-39,
+                P-40, P-41, P-47, N-4, N-6, N-7, N-8, N-9, N-16
+              </td>
+            </tr>
+            <tr>
+              <td>Open</td>
+              <td>
+                P-05, P-06, P-08, P-09, P-10, P-21, P-22, P-27, P-31, P-36,
+                P-37, P-38, P-42, P-43, P-44, P-45, P-46, P-48, P-49, N-10, N-15
+              </td>
+            </tr>
+          </table>
+        </div>
+        <h3>Overall recommendation</h3>
+        <p>
+          <strong>Engineering:</strong> the project has a credible foundation
+          for a gradual hybrid, supported by tests, migrations, architecture
+          guards, and rollback rehearsals.
+        </p>
+        <p>
+          <strong>Production:</strong> a safe remote cutover is not yet proven.
+          The next sequence is security gate → operational gate → provider-share
+          rehearsal → reporting → notifications → Web BFF → optional catalog.
+          Booking/Payments/Cancellation stays in the modular monolith.
+        </p>
+      </section>
+
+      <footer>
+        <p>
+          Полная версия со ссылками на код:
+          <a
+            href="https://github.com/blookd24/API/blob/dev/docs/audit/history/2026-11-25/hybrid-readiness.md"
+            >docs/audit/history/2026-11-25/hybrid-readiness.md</a
+          >.
+        </p>
+        <p>
+          English: detailed evidence and the previous finding register are in
+          the linked audit. See also the staged plan and concise progress
+          comparison.
+        </p>
+      </footer>
+    </main>
+  </body>
+</html>

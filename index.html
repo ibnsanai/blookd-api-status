@@ -1,48 +1,219 @@
 <!doctype html>
 <html lang="ru">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Blookd API — Status Reports</title>
-<style>
-:root{--bg:#f4f6fa;--panel:#fff;--ink:#172033;--muted:#5d687b;--line:#dce2ec;--accent:#3157c8}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}main{width:min(1000px,calc(100% - 30px));margin:40px auto}header{margin-bottom:24px}h1{font-size:34px;margin:0 0 8px}p{margin:7px 0}.muted{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;color:inherit;text-decoration:none;box-shadow:0 2px 8px rgba(20,35,70,.04)}.card:hover{border-color:var(--accent);transform:translateY(-1px)}.date{color:var(--accent);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}.card h2{font-size:21px;margin:8px 0}.card p{color:var(--muted)}.link{color:var(--accent);font-weight:650;margin-top:16px}footer{margin-top:24px;color:var(--muted);font-size:13px}@media(max-width:700px){.grid{grid-template-columns:1fr}main{margin-top:22px}h1{font-size:28px}}
-</style>
-</head>
-<body><main>
-<header>
-<h1>Blookd API — Status Reports</h1>
-<p class="muted">Отчёты для проектного менеджера и архитектурные решения по развитию Blookd API.</p>
-<p class="muted">Project-management status reports and architecture decisions for the Blookd API.</p>
-</header>
-<div class="grid">
-<a class="card" href="https://ibnsanai.github.io/blookd-api-status-2026-11-08/">
-<div class="date">8 November 2026 · EN / RU</div>
-<h2>Project status report</h2>
-<p>Что изменилось в системе, какие задачи завершены и что необходимо сделать перед переходом к микросервисной архитектуре.</p>
-<p>Completed work, before/after facts and the remaining prerequisites for architecture changes.</p>
-<div class="link">Открыть отчёт / Open report →</div>
-</a>
-<a class="card" href="reports/microservices-strategy-2026-11-09.html">
-<div class="date">9 November 2026 · RU</div>
-<h2>Стратегия перехода на микросервисы</h2>
-<p>Фактическая карта модулей и данных, bounded contexts, целевая гибридная архитектура, поэтапный roadmap, риски и критерии готовности каждого шага.</p>
-<div class="link">Открыть стратегию →</div>
-</a>
-<a class="card" href="reports/rent-api-database-code-audit-2026-11-18.html">
-<div class="date">18 November 2026 · RU</div>
-<h2>RentAPI: аудит маршрутов и production БД</h2>
-<p>149 HTTP-маршрутов и их связь с 42 таблицами, индексы, внешние ключи и типы, мёртвый код, N+1 запросы, обработка ошибок и приоритизированный план.</p>
-<div class="link">Открыть аудит →</div>
-</a>
-<a class="card" href="reports/database-code-audit-2026-11-09.html">
-<div class="date">9 November 2026 · RU</div>
-<h2>Аудит кода и production базы данных</h2>
-<p>482 маршрута и их связь с таблицами, кандидаты на удаление, индексы и типы данных, N+1 запросы, неиспользуемый код и приоритизированный план работ.</p>
-<div class="link">Открыть аудит →</div>
-</a>
-</div>
-<footer>
-<p>Новые отчёты для проектного менеджера публикуются в этом репозитории и добавляются на эту страницу.</p>
-<p><a href="https://github.com/ibnsanai/blookd-api-status">Репозиторий на GitHub</a></p>
-</footer>
-</main></body></html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Blookd API — Status Reports</title>
+    <style>
+      :root {
+        --bg: #f4f6fa;
+        --panel: #fff;
+        --ink: #172033;
+        --muted: #5d687b;
+        --line: #dce2ec;
+        --accent: #3157c8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          15px/1.55 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Arial,
+          sans-serif;
+      }
+      main {
+        width: min(1000px, calc(100% - 30px));
+        margin: 40px auto;
+      }
+      header {
+        margin-bottom: 24px;
+      }
+      h1 {
+        font-size: 34px;
+        margin: 0 0 8px;
+      }
+      p {
+        margin: 7px 0;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+      .card {
+        display: block;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 22px;
+        color: inherit;
+        text-decoration: none;
+        box-shadow: 0 2px 8px rgba(20, 35, 70, 0.04);
+      }
+      .card:hover {
+        border-color: var(--accent);
+        transform: translateY(-1px);
+      }
+      .date {
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .card h2 {
+        font-size: 21px;
+        margin: 8px 0;
+      }
+      .card p {
+        color: var(--muted);
+      }
+      .link {
+        color: var(--accent);
+        font-weight: 650;
+        margin-top: 16px;
+      }
+      footer {
+        margin-top: 24px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      @media (max-width: 700px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        main {
+          margin-top: 22px;
+        }
+        h1 {
+          font-size: 28px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Blookd API — Status Reports</h1>
+        <p class="muted">
+          Отчёты для проектного менеджера и архитектурные решения по развитию
+          Blookd API.
+        </p>
+        <p class="muted">
+          Project-management status reports and architecture decisions for the
+          Blookd API.
+        </p>
+      </header>
+      <div class="grid">
+        <a class="card" href="reports/hybrid-readiness-2026-11-25.html">
+          <div class="date">25 November 2026 · EN / RU</div>
+          <h2>Готовность к гибридной архитектуре</h2>
+          <p>
+            Оценка восьми направлений, критические блокеры и обязательные
+            условия production-пилота.
+          </p>
+          <p>
+            Eight-workstream assessment, remaining critical risks, and the
+            required production go-live gates.
+          </p>
+          <div class="link">Открыть оценку / Open assessment →</div>
+        </a>
+        <a class="card" href="reports/hybrid-transition-plan-2026-11-25.html">
+          <div class="date">25 November 2026 · EN / RU</div>
+          <h2>Поэтапный переход к гибридной архитектуре</h2>
+          <p>
+            Security gate, production readiness, provider-share, reporting,
+            notifications, Web BFF и пересмотр Core.
+          </p>
+          <p>
+            A reversible stage-by-stage transition that preserves the user
+            experience and public API contracts.
+          </p>
+          <div class="link">Открыть план / Open plan →</div>
+        </a>
+        <a class="card" href="reports/service-progress-2026-11-25.html">
+          <div class="date">25 November 2026 · EN / RU</div>
+          <h2>Прогресс с 8 ноября</h2>
+          <p>
+            Как было и как стало: закрытые проблемы, практическая польза, цена
+            работы и оставшиеся риски.
+          </p>
+          <p>
+            Before/after facts, delivered benefits, remaining drawbacks, and
+            current production risks.
+          </p>
+          <div class="link">Открыть сравнение / Open comparison →</div>
+        </a>
+        <a
+          class="card"
+          href="https://ibnsanai.github.io/blookd-api-status-2026-11-08/"
+        >
+          <div class="date">8 November 2026 · EN / RU</div>
+          <h2>Project status report</h2>
+          <p>
+            Что изменилось в системе, какие задачи завершены и что необходимо
+            сделать перед переходом к микросервисной архитектуре.
+          </p>
+          <p>
+            Completed work, before/after facts and the remaining prerequisites
+            for architecture changes.
+          </p>
+          <div class="link">Открыть отчёт / Open report →</div>
+        </a>
+        <a class="card" href="reports/microservices-strategy-2026-11-09.html">
+          <div class="date">9 November 2026 · RU</div>
+          <h2>Стратегия перехода на микросервисы</h2>
+          <p>
+            Фактическая карта модулей и данных, bounded contexts, целевая
+            гибридная архитектура, поэтапный roadmap, риски и критерии
+            готовности каждого шага.
+          </p>
+          <div class="link">Открыть стратегию →</div>
+        </a>
+        <a
+          class="card"
+          href="reports/rent-api-database-code-audit-2026-11-18.html"
+        >
+          <div class="date">18 November 2026 · RU</div>
+          <h2>RentAPI: аудит маршрутов и production БД</h2>
+          <p>
+            149 HTTP-маршрутов и их связь с 42 таблицами, индексы, внешние ключи
+            и типы, мёртвый код, N+1 запросы, обработка ошибок и
+            приоритизированный план.
+          </p>
+          <div class="link">Открыть аудит →</div>
+        </a>
+        <a class="card" href="reports/database-code-audit-2026-11-09.html">
+          <div class="date">9 November 2026 · RU</div>
+          <h2>Аудит кода и production базы данных</h2>
+          <p>
+            482 маршрута и их связь с таблицами, кандидаты на удаление, индексы
+            и типы данных, N+1 запросы, неиспользуемый код и приоритизированный
+            план работ.
+          </p>
+          <div class="link">Открыть аудит →</div>
+        </a>
+      </div>
+      <footer>
+        <p>
+          Новые отчёты для проектного менеджера публикуются в этом репозитории и
+          добавляются на эту страницу.
+        </p>
+        <p>
+          <a href="https://github.com/ibnsanai/blookd-api-status"
+            >Репозиторий на GitHub</a
+          >
+        </p>
+      </footer>
+    </main>
+  </body>
+</html>

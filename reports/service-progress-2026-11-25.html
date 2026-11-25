@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>
+      Blookd API — прогресс с 08.11.2026 / Progress since 8 November 2026
+    </title>
+    <style>
+      :root {
+        --bg: #f4f6fa;
+        --panel: #fff;
+        --ink: #172033;
+        --muted: #5d687b;
+        --line: #dce2ec;
+        --accent: #3157c8;
+        --ok: #14734b;
+        --warn: #955800;
+        --bad: #b42332;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          15px/1.58 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Arial,
+          sans-serif;
+      }
+      main {
+        width: min(1120px, calc(100% - 30px));
+        margin: 28px auto 50px;
+      }
+      header,
+      section {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 16px;
+      }
+      header {
+        border-top: 4px solid var(--accent);
+      }
+      h1 {
+        font-size: 29px;
+        margin: 0 0 10px;
+      }
+      h2 {
+        font-size: 23px;
+        margin: 0 0 14px;
+      }
+      h3 {
+        font-size: 18px;
+        margin: 18px 0 8px;
+      }
+      p,
+      li {
+        margin: 8px 0;
+      }
+      a {
+        color: var(--accent);
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .callout {
+        border-left: 4px solid var(--accent);
+        background: #f3f6ff;
+        padding: 14px 16px;
+        margin: 14px 0;
+      }
+      .warning {
+        border-left-color: var(--warn);
+        background: #fff8e8;
+      }
+      .success {
+        border-left-color: var(--ok);
+        background: #edf8f2;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin: 16px 0;
+      }
+      .metric {
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        padding: 12px;
+      }
+      .metric strong {
+        display: block;
+        font-size: 23px;
+      }
+      .metric span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 12px 0;
+      }
+      th,
+      td {
+        text-align: left;
+        vertical-align: top;
+        border-bottom: 1px solid var(--line);
+        padding: 10px;
+      }
+      th {
+        color: var(--muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      code {
+        background: #eef1f7;
+        border-radius: 3px;
+        padding: 1px 4px;
+      }
+      .good {
+        color: var(--ok);
+        font-weight: 650;
+      }
+      .warn {
+        color: var(--warn);
+        font-weight: 650;
+      }
+      .bad {
+        color: var(--bad);
+        font-weight: 650;
+      }
+      .lang {
+        border-bottom: 3px solid var(--accent);
+      }
+      footer {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      @media (max-width: 760px) {
+        .grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        main {
+          width: calc(100% - 16px);
+          margin-top: 10px;
+        }
+        header,
+        section {
+          padding: 15px;
+        }
+        h1 {
+          font-size: 25px;
+        }
+      }
+      @media print {
+        body {
+          background: #fff;
+        }
+        main {
+          width: 100%;
+          margin: 0;
+        }
+        header,
+        section {
+          break-inside: avoid;
+        }
+        .lang {
+          break-before: page;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Blookd API — что изменилось с 8 ноября 2026</h1>
+        <p class="muted">
+          Краткий срез для проектного менеджера · Сравнение snapshot 08.11 с
+          <code>dev@75beb25f</code> от 25.11
+        </p>
+        <div class="callout">
+          <strong>Итог простыми словами:</strong> система стала заметно
+          безопаснее для изменений: production схема воспроизводится, runtime
+          собирается заранее, критические модульные циклы устранены, появились
+          надёжные механизмы событий и rollback, а все unit/API-тесты зелёные.
+          Но production микросервис ещё не запущен: остаются конкретные
+          security-риски и operational gates.
+        </div>
+        <p>
+          <a href="#ru">Русский</a> · <a href="#en">English</a> ·
+          <a href="hybrid-readiness-2026-11-25.html">Подробная оценка</a> ·
+          <a href="hybrid-transition-plan-2026-11-25.html">План перехода</a>
+        </p>
+        <div class="grid">
+          <div class="metric">
+            <strong>4125 / 4126</strong><span>unit passed · 0 failed</span>
+          </div>
+          <div class="metric">
+            <strong>1374 / 1374</strong><span>API passed · 0 failed</span>
+          </div>
+          <div class="metric">
+            <strong>0 crit/high</strong><span>dependency advisories</span>
+          </div>
+          <div class="metric">
+            <strong>14 days</strong><span>stabilization before contract</span>
+          </div>
+        </div>
+      </header>
+
+      <section id="ru" class="lang">
+        <h2>1. Было → стало: главные факты</h2>
+        <div class="table-wrap">
+          <table>
+            <tr>
+              <th>Область</th>
+              <th>08.11.2026</th>
+              <th>25.11.2026</th>
+              <th>Практическая польза</th>
+            </tr>
+            <tr>
+              <td>Тестовые файлы</td>
+              <td>353 unit + 105 API</td>
+              <td><strong>401 unit + 127 API</strong></td>
+              <td>Больше защиты от регрессий: +48 unit и +22 API файла</td>
+            </tr>
+            <tr>
+              <td>Unit-результат</td>
+              <td>3682 passed / 252 failed из 3936</td>
+              <td>
+                <strong>4125 passed / 0 failed / 1 skipped из 4126</strong>
+              </td>
+              <td>Известные падения разобраны; baseline пуст</td>
+            </tr>
+            <tr>
+              <td>API-результат</td>
+              <td>1252 passed / 39 failed из 1291</td>
+              <td><strong>1374 passed / 0 failed</strong></td>
+              <td>
+                Можно блокировать новые падения, а не списывать их на старые
+              </td>
+            </tr>
+            <tr>
+              <td>Production зависимости</td>
+              <td>99: 9 critical, 42 high, 46 moderate, 2 low</td>
+              <td><strong>14 moderate, 0 critical/high</strong></td>
+              <td>
+                Критическая экспозиция устранена; moderate backlog остаётся
+              </td>
+            </tr>
+            <tr>
+              <td>Production schema</td>
+              <td>Надёжного baseline нет; dev устарел</td>
+              <td><strong>DDL 19.11: 133 таблицы + 4 view</strong></td>
+              <td>Можно проверять новые миграции на production-shaped схеме</td>
+            </tr>
+            <tr>
+              <td>Runtime</td>
+              <td>Запуск ts-node, долгий старт</td>
+              <td>
+                <strong
+                  >Compiled <code>dist/server.js</code>, multi-stage
+                  Docker</strong
+                >
+              </td>
+              <td>Предсказуемый старт без runtime TypeScript dependencies</td>
+            </tr>
+            <tr>
+              <td>Эксплуатация</td>
+              <td>Нет нормального health, env validation, graceful shutdown</td>
+              <td>
+                <strong
+                  >Health/readiness, strict env, safe 500, shutdown, metrics,
+                  alerts</strong
+                >
+              </td>
+              <td>Меньше скрытых сбоев и безопаснее rolling deploy</td>
+            </tr>
+            <tr>
+              <td>Модульные границы</td>
+              <td>Service hub и критические циклы</td>
+              <td>
+                <strong>Hub удалён, critical cycles=0, guard в CI</strong>
+              </td>
+              <td>Можно видеть и контролировать зависимости перед выносом</td>
+            </tr>
+            <tr>
+              <td>Деньги и кошелёк</td>
+              <td>Lost update; владельцы размыты</td>
+              <td>
+                <strong
+                  >Atomic wallet + history, единый writer, idempotency</strong
+                >
+              </td>
+              <td>Ниже риск потери обновлений и повторных операций</td>
+            </tr>
+            <tr>
+              <td>Фоновая работа</td>
+              <td>Нет outbox и distributed locks</td>
+              <td><strong>Outbox, retry/DLQ/replay, cron leases</strong></td>
+              <td>Механизмы есть, но пока по умолчанию <code>off</code></td>
+            </tr>
+            <tr>
+              <td>Горячие запросы</td>
+              <td>Много per-day/per-row запросов</td>
+              <td>
+                <strong
+                  >Availability 96→6; batch updates; light homescreen</strong
+                >
+              </td>
+              <td>
+                Меньше нагрузка на БД; production latency ещё нужно измерить
+              </td>
+            </tr>
+            <tr>
+              <td>Вынос сервиса</td>
+              <td>Нет безопасного механизма</td>
+              <td>
+                <strong>Image, local/remote, shadow, rollback, runbooks</strong>
+              </td>
+              <td>Можно репетировать без изменения пользовательского опыта</td>
+            </tr>
+            <tr>
+              <td>Маршруты v2/v3/web</td>
+              <td>290</td>
+              <td><strong>294, 0 ошибок загрузки</strong></td>
+              <td>Продукт вырос; полный split стал ещё сложнее</td>
+            </tr>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>2. Какие проблемы действительно закрыты</h2>
+        <ul>
+          <li>
+            <strong>Production schema:</strong> получен и проверен DDL без
+            бизнес-данных; clean/prod-shaped migrations выполняются в CI.
+          </li>
+          <li>
+            <strong>Структура монолита:</strong> hub удалён; критический
+            Booking/Payments/Cancellation/Wallet graph ацикличен; новые
+            нарушения блокируются.
+          </li>
+          <li>
+            <strong>Консистентность:</strong> есть same-transaction outbox,
+            durable dedup, retries, DLQ/replay, Stripe reconciliation и cron
+            leases.
+          </li>
+          <li>
+            <strong>Runtime:</strong> compiled JS, секреты только во runtime,
+            валидация окружения, health/readiness, graceful shutdown и
+            безопасные 500.
+          </li>
+          <li>
+            <strong>Наблюдаемость:</strong> correlation IDs,
+            HTTP/DB/external/runtime metrics, структурированные алерты и
+            runbooks.
+          </li>
+          <li>
+            <strong>CI:</strong> контракты и characterization, migration tests,
+            baseline guards, 4 API shards, aggregate gate. Main — автоматически,
+            dev — через <code>run-ci</code>.
+          </li>
+          <li>
+            <strong>Обратимый вынос:</strong> отдельный image и source/compiled
+            rollback rehearsal с нулём внешних эффектов.
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>3. Какая польза уже получена</h2>
+        <div class="success">
+          <ul>
+            <li>
+              <strong>Меньше риск релизов:</strong> регрессии обнаруживаются до
+              merge, а не после обращения пользователей.
+            </li>
+            <li>
+              <strong>Меньше скрытого дрейфа:</strong> production схема,
+              владельцы данных и модульные зависимости стали видимыми.
+            </li>
+            <li>
+              <strong>Меньше операционных сюрпризов:</strong> ошибки
+              конфигурации видны при старте; процесс умеет завершаться без
+              обрыва запросов.
+            </li>
+            <li>
+              <strong>Меньше лишней работы БД:</strong> запросы стали короче и
+              пакетнее, без выдуманных индексов.
+            </li>
+            <li>
+              <strong>Есть безопасный путь вперёд:</strong> новый сервис можно
+              сравнить со старым и вернуться назад конфигурацией.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <h2>4. Минусы, цена работы и оставшиеся риски</h2>
+        <div class="warning">
+          <ul>
+            <li>
+              <strong>Денежный blocker:</strong>
+              <code>createtransfers</code> по-прежнему принимает произвольные
+              amount/account_id без проверки владельца.
+            </li>
+            <li>
+              <strong>Legacy card data:</strong> CVV теперь записывается как 0,
+              но PAN/CVV принимаются endpoint’ом по умолчанию; production
+              flag/purge требуется подтвердить.
+            </li>
+            <li>
+              <strong>Пароли и auth:</strong> Argon2id — capability, не
+              завершённая миграция; public paths по-прежнему обходятся по
+              сегментам URL.
+            </li>
+            <li>
+              <strong>SQL и секреты:</strong> generic raw conditions остаются;
+              APNs key в git требует ротации; есть 14 moderate advisories.
+            </li>
+            <li>
+              <strong>Shared ownership:</strong> 48 legacy imports и несколько
+              shared writers остаются; appointments/payments/notifications
+              нельзя разделять автоматически.
+            </li>
+            <li>
+              <strong>Механизмы не равны rollout:</strong> outbox/cron locks
+              выключены по умолчанию, outbox producer пока только payment
+              attempts.
+            </li>
+            <li>
+              <strong>БД ещё не полностью воспроизводима:</strong> 61 legacy
+              table не имеет tracked DDL;
+              <code>ProductPurchase.booking_id</code> остаётся в модели;
+              реальные data integrity counts не сняты.
+            </li>
+            <li>
+              <strong>Нет production proof:</strong> нет свежих RPS/p95/p99,
+              реального shadow report, alert delivery и 14-day remote
+              stabilization.
+            </li>
+            <li>
+              <strong>Больше операционных артефактов:</strong> появились
+              дополнительные таблицы, флаги, workers, runbooks и образы — это
+              полезная, но реальная сложность для команды.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <h2>5. Итоговая оценка</h2>
+        <p>
+          <strong
+            >Работа принесла реальную пользу, а не только новые
+            документы.</strong
+          >
+          Закрыты фундаментальные проблемы, которые раньше делали любой вынос
+          опасным. Теперь есть доказанная тестами основа.
+        </p>
+        <p>
+          <strong>Но это не завершённый переход.</strong> Следующий шаг —
+          закрыть security blockers и operational gates, затем выполнить
+          provider-share rehearsal. Только после неё имеет смысл переносить
+          reporting, notifications и Web BFF. Booking/Payments/Cancellation
+          остаются в монолите.
+        </p>
+      </section>
+
+      <section id="en" class="lang">
+        <h2>Progress since 8 November — plain English</h2>
+        <p class="muted">
+          A concise comparison for project management. Baseline: the 8 November
+          snapshot. Current code: <code>dev@75beb25f</code>, 25 November. This
+          is not a production go-live approval.
+        </p>
+        <div class="callout">
+          <strong>Bottom line:</strong> the platform is much safer to change.
+          Production schema is reproducible, the runtime is compiled, critical
+          module cycles are gone, reliable event and rollback mechanisms exist,
+          and every unit/API test passes. No production microservice has been
+          enabled yet: specific security and operational gates remain.
+        </div>
+        <h3>Before → now</h3>
+        <div class="table-wrap">
+          <table>
+            <tr>
+              <th>Area</th>
+              <th>8 November</th>
+              <th>25 November</th>
+              <th>Benefit</th>
+            </tr>
+            <tr>
+              <td>Test files</td>
+              <td>353 unit + 105 API</td>
+              <td><strong>401 unit + 127 API</strong></td>
+              <td>48 more unit and 22 more API files protecting behavior</td>
+            </tr>
+            <tr>
+              <td>Unit</td>
+              <td>3,682 passed / 252 failed of 3,936</td>
+              <td>
+                <strong>4,125 passed / 0 failed / 1 skipped of 4,126</strong>
+              </td>
+              <td>Known failures were investigated; the baseline is empty</td>
+            </tr>
+            <tr>
+              <td>API</td>
+              <td>1,252 passed / 39 failed of 1,291</td>
+              <td><strong>1,374 passed / 0 failed</strong></td>
+              <td>New regressions can now be blocked instead of tolerated</td>
+            </tr>
+            <tr>
+              <td>Dependencies</td>
+              <td>99 advisories: 9 critical, 42 high, 46 moderate, 2 low</td>
+              <td><strong>14 moderate, no critical/high</strong></td>
+              <td>Critical exposure removed; moderate maintenance remains</td>
+            </tr>
+            <tr>
+              <td>Production schema</td>
+              <td>No reliable baseline; stale development copy</td>
+              <td><strong>DDL-only snapshot: 133 tables + 4 views</strong></td>
+              <td>
+                New migrations run against a production-shaped schema in CI
+              </td>
+            </tr>
+            <tr>
+              <td>Runtime</td>
+              <td>ts-node startup</td>
+              <td>
+                <strong
+                  >Compiled <code>dist/server.js</code>, multi-stage
+                  image</strong
+                >
+              </td>
+              <td>
+                Predictable startup without runtime TypeScript installation
+              </td>
+            </tr>
+            <tr>
+              <td>Operations</td>
+              <td>Missing health, env validation, and graceful shutdown</td>
+              <td>
+                <strong
+                  >Health/readiness, strict env, safe 500, shutdown, metrics,
+                  alerts</strong
+                >
+              </td>
+              <td>Less hidden failure and safer rolling deployment</td>
+            </tr>
+            <tr>
+              <td>Module boundaries</td>
+              <td>Service hub and critical dependency cycles</td>
+              <td>
+                <strong
+                  >Hub removed, critical cycles=0, CI boundary guard</strong
+                >
+              </td>
+              <td>Dependencies are visible and new violations are blocked</td>
+            </tr>
+            <tr>
+              <td>Wallet and payments</td>
+              <td>Lost updates and blurred ownership</td>
+              <td>
+                <strong>Atomic wallet/history, one writer, idempotency</strong>
+              </td>
+              <td>Lower risk of lost updates and repeated business effects</td>
+            </tr>
+            <tr>
+              <td>Background work</td>
+              <td>No outbox or distributed locks</td>
+              <td><strong>Outbox, retry/DLQ/replay, cron leases</strong></td>
+              <td>Mechanisms exist, but defaults remain <code>off</code></td>
+            </tr>
+            <tr>
+              <td>Hot queries</td>
+              <td>Per-day and per-row fan-out</td>
+              <td>
+                <strong
+                  >Availability 96→6 queries, batch updates, lighter
+                  homescreen</strong
+                >
+              </td>
+              <td>Less DB work; production latency still needs measurement</td>
+            </tr>
+            <tr>
+              <td>Extraction</td>
+              <td>No reversible mechanism</td>
+              <td>
+                <strong>Image, local/remote, shadow, rollback, runbooks</strong>
+              </td>
+              <td>
+                Extraction can be rehearsed without changing user behavior
+              </td>
+            </tr>
+            <tr>
+              <td>v2/v3/web routes</td>
+              <td>290</td>
+              <td><strong>294 with zero router-load errors</strong></td>
+              <td>The product grew, making a full split more complex</td>
+            </tr>
+          </table>
+        </div>
+        <h3>Problems that are genuinely closed</h3>
+        <ul>
+          <li>
+            Production DDL baseline and clean/production-shaped migration
+            checks.
+          </li>
+          <li>
+            Service hub removal and an acyclic critical
+            Booking/Payments/Cancellation/Wallet graph.
+          </li>
+          <li>
+            Same-transaction outbox, durable deduplication, retry/DLQ/replay,
+            Stripe reconciliation, and cron leases.
+          </li>
+          <li>
+            Compiled runtime, runtime-only secrets, startup validation,
+            health/readiness, safe 500 responses, and graceful shutdown.
+          </li>
+          <li>
+            Correlation IDs, runtime metrics, structured alerts, and operational
+            runbooks.
+          </li>
+          <li>
+            Contract and characterization tests, migration CI, baseline guards,
+            four API shards, and an aggregate CI gate.
+          </li>
+          <li>
+            Separate extraction image and source/compiled rollback rehearsal
+            with zero external effects.
+          </li>
+        </ul>
+        <h3>Benefits already delivered</h3>
+        <ul>
+          <li>Regressions are detected before merge rather than by users.</li>
+          <li>
+            Schema, data ownership, and module dependencies are visible instead
+            of implicit.
+          </li>
+          <li>
+            Configuration failures appear at startup, and requests finish during
+            shutdown.
+          </li>
+          <li>Hot SQL paths do less work without speculative indexes.</li>
+          <li>
+            A new service can be compared with the current path and reversed
+            through configuration.
+          </li>
+        </ul>
+        <h3>Costs and remaining risks</h3>
+        <ul>
+          <li>
+            <code>createtransfers</code> still accepts arbitrary
+            amount/account_id without an ownership check.
+          </li>
+          <li>
+            Legacy endpoints still accept PAN/CVV by default, although stored
+            CVV is forced to zero; production flag and purge need confirmation.
+          </li>
+          <li>
+            Argon2id is available but legacy-password migration is not complete;
+            path-segment auth bypass remains.
+          </li>
+          <li>
+            Generic SQL conditions, APNs key rotation, and 14 moderate
+            dependency advisories remain.
+          </li>
+          <li>
+            There are still 48 legacy imports and several shared writers;
+            booking/payment/notification ownership cannot be split
+            automatically.
+          </li>
+          <li>
+            Outbox and cron locks are off by default, and payment attempts are
+            currently the only outbox producer.
+          </li>
+          <li>
+            61 legacy tables lack tracked DDL;
+            <code>ProductPurchase.booking_id</code> remains in the model; real
+            data-integrity counts are missing.
+          </li>
+          <li>
+            There is no current production RPS/latency baseline, real shadow
+            report, verified alert delivery, or 14-day remote stabilization.
+          </li>
+          <li>
+            New tables, flags, workers, runbooks, and images add operational
+            complexity that the team must own.
+          </li>
+        </ul>
+        <h3>Conclusion</h3>
+        <p>
+          <strong
+            >The work produced real engineering benefits, not just
+            documentation.</strong
+          >
+          The fundamental obstacles to a safe extraction are now addressed. The
+          next step is to close security and operational gates, then rehearse
+          provider-share. Reporting, notifications, and Web BFF come after that.
+          Booking/Payments/Cancellation remains in the modular monolith.
+        </p>
+      </section>
+
+      <footer>
+        <p>
+          Подробности и статусы:
+          <a
+            href="https://github.com/blookd24/API/blob/dev/docs/audit/history/2026-11-25/hybrid-readiness.md"
+            >аудит готовности</a
+          >
+          · <a href="hybrid-readiness-2026-11-25.html">восемь направлений</a> ·
+          <a href="hybrid-transition-plan-2026-11-25.html">поэтапный план</a>.
+        </p>
+        <p>
+          English: see the detailed readiness assessment and staged transition
+          plan linked above.
+        </p>
+      </footer>
+    </main>
+  </body>
+</html>
