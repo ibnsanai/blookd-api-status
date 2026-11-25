@@ -1,0 +1,75 @@
+{
+  "capturedAt": "2026-11-25T15:38:43+03:00",
+  "api": {
+    "branch": "dev",
+    "head": "75beb25f205a3b1acbc6c4c314580a1a9c918fd3",
+    "headSubject": "platform(extraction): record reversible mechanism evidence",
+    "uncommittedDocumentation": [
+      "docs/ci/baseline-guards.md",
+      "docs/ci/branch-protection.md",
+      "docs/db/indexes.md",
+      "docs/db/reproducibility.md"
+    ],
+    "auditIsGitIgnored": true
+  },
+  "statusRepository": {
+    "head": "80bc93da02919eeecadb149deb3bb6bdea1b8c96",
+    "indexUrl": "https://ibnsanai.github.io/blookd-api-status/"
+  },
+  "comparisonBaseline": {
+    "snapshot": "docs/audit/history/2026-11-08/snapshot-current-state.md",
+    "nearestCommit": "b88b2c3a",
+    "commitsSince": 174,
+    "filesChanged": 610,
+    "insertions": 47487,
+    "deletions": 15498
+  },
+  "metrics": {
+    "unitSpecFiles": 401,
+    "apiSpecFiles": 127,
+    "unit": { "passed": 4125, "failed": 0, "skipped": 1, "total": 4126 },
+    "api": { "passed": 1374, "failed": 0, "suites": 127 },
+    "knownFailingUnitEntries": 0,
+    "knownFailingApiEntries": 0,
+    "liveV2V3WebRoutes": 294,
+    "routeLoadErrors": 0,
+    "dependencyAdvisories": { "critical": 0, "high": 0, "moderate": 14 },
+    "productionBaseline": {
+      "file": "sql/baseline/prod-ddl-2026-11-19.sql",
+      "tables": 133,
+      "views": 4
+    },
+    "architecture": {
+      "baselineImports": 48,
+      "currentImports": 48,
+      "newImports": 0,
+      "criticalCycles": 0
+    },
+    "runtime": "compiled dist/server.js",
+    "productionRemoteStarted": false
+  },
+  "readinessPercent": {
+    "security": 75,
+    "database": 85,
+    "moduleBoundaries": 80,
+    "consistencyAsync": 75,
+    "performance": 70,
+    "runtimeObservability": 90,
+    "ciTests": 95,
+    "reversibleExtraction": 85,
+    "engineeringOverallApprox": 80,
+    "operationalOverallApproxMin": 60,
+    "operationalOverallApproxMax": 65
+  },
+  "defaults": {
+    "outbox": "off",
+    "cronLocks": "off",
+    "providerShareExtraction": "local"
+  },
+  "productionApproval": false,
+  "reports": {
+    "readiness": "https://ibnsanai.github.io/blookd-api-status/reports/hybrid-readiness-2026-11-25.html",
+    "transitionPlan": "https://ibnsanai.github.io/blookd-api-status/reports/hybrid-transition-plan-2026-11-25.html",
+    "comparison": "https://ibnsanai.github.io/blookd-api-status/reports/service-progress-2026-11-25.html"
+  }
+}

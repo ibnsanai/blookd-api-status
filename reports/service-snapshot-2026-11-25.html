@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Blookd API — snapshot 25.11.2026 / Current-state snapshot</title>
+    <style>
+      :root {
+        --bg: #f4f6fa;
+        --panel: #fff;
+        --ink: #172033;
+        --muted: #5d687b;
+        --line: #dce2ec;
+        --accent: #3157c8;
+        --warn: #955800;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          15px/1.58 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Arial,
+          sans-serif;
+      }
+      main {
+        width: min(1100px, calc(100% - 30px));
+        margin: 28px auto 50px;
+      }
+      header,
+      section {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 16px;
+      }
+      header {
+        border-top: 4px solid var(--accent);
+      }
+      h1 {
+        font-size: 29px;
+        margin: 0 0 10px;
+      }
+      h2 {
+        font-size: 22px;
+        margin: 0 0 14px;
+      }
+      p,
+      li {
+        margin: 8px 0;
+      }
+      a {
+        color: var(--accent);
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .callout {
+        border-left: 4px solid var(--accent);
+        background: #f3f6ff;
+        padding: 14px 16px;
+        margin: 14px 0;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin: 16px 0;
+      }
+      .metric {
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        padding: 12px;
+      }
+      .metric strong {
+        display: block;
+        font-size: 22px;
+      }
+      .metric span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 12px 0;
+      }
+      th,
+      td {
+        text-align: left;
+        vertical-align: top;
+        border-bottom: 1px solid var(--line);
+        padding: 10px;
+      }
+      th {
+        color: var(--muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      code {
+        background: #eef1f7;
+        border-radius: 3px;
+        padding: 1px 4px;
+      }
+      .lang {
+        border-bottom: 3px solid var(--accent);
+      }
+      footer {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      @media (max-width: 760px) {
+        .grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        main {
+          width: calc(100% - 16px);
+          margin-top: 10px;
+        }
+        header,
+        section {
+          padding: 15px;
+        }
+        h1 {
+          font-size: 25px;
+        }
+      }
+      @media print {
+        body {
+          background: #fff;
+        }
+        main {
+          width: 100%;
+          margin: 0;
+        }
+        header,
+        section {
+          break-inside: avoid;
+        }
+        .lang {
+          break-before: page;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Blookd API — неизменяемый snapshot состояния</h1>
+        <p class="muted">
+          Снят: <strong>25.11.2026 15:38:43 +03:00</strong> ·
+          <code>dev@75beb25f205a3b1acbc6c4c314580a1a9c918fd3</code>
+        </p>
+        <div class="callout">
+          <strong>Назначение:</strong> контрольная точка для будущего сравнения
+          «было → стало». Этот snapshot не перезаписывается. Для новых изменений
+          создаются новые snapshot-файлы.
+        </div>
+        <p>
+          <a href="#ru">Русский</a> · <a href="#en">English</a> ·
+          <a href="snapshots/service-snapshot-2026-11-25.json"
+            >Машиночитаемый JSON</a
+          >
+          · <a href="hybrid-readiness-2026-11-25.html">Подробный аудит</a>
+        </p>
+        <div class="grid">
+          <div class="metric">
+            <strong>4125 / 4126</strong><span>unit passed · 1 skipped</span>
+          </div>
+          <div class="metric">
+            <strong>1374 / 1374</strong><span>API passed</span>
+          </div>
+          <div class="metric">
+            <strong>528</strong><span>unit + API spec files</span>
+          </div>
+          <div class="metric">
+            <strong>0</strong><span>production remote запущен</span>
+          </div>
+        </div>
+      </header>
+      <section id="ru" class="lang">
+        <h2>1. Идентификация snapshot</h2>
+        <div class="table-wrap">
+          <table>
+            <tr>
+              <th>Объект</th>
+              <th>Зафиксированное значение</th>
+            </tr>
+            <tr>
+              <td>API</td>
+              <td>
+                <code>dev@75beb25f205a3b1acbc6c4c314580a1a9c918fd3</code>,
+                subject
+                <code
+                  >platform(extraction): record reversible mechanism
+                  evidence</code
+                >
+              </td>
+            </tr>
+            <tr>
+              <td>Локальные изменения</td>
+              <td>
+                Без коммита: <code>docs/ci/baseline-guards.md</code>,
+                <code>docs/ci/branch-protection.md</code>,
+                <code>docs/db/indexes.md</code>,
+                <code>docs/db/reproducibility.md</code>
+              </td>
+            </tr>
+            <tr>
+              <td>Status repository</td>
+              <td>
+                <code
+                  >blookd-api-status@80bc93da02919eeecadb149deb3bb6bdea1b8c96</code
+                >
+              </td>
+            </tr>
+            <tr>
+              <td>База сравнения</td>
+              <td>
+                Snapshot 08.11, ближайший <code>b88b2c3a</code>; затем 174
+                коммита, 610 файлов, +47 487 / −15 498 строк
+              </td>
+            </tr>
+            <tr>
+              <td>Audit history</td>
+              <td>
+                <code
+                  >docs/audit/history/2026-11-25/snapshot-current-state.md</code
+                >
+                и одноимённый <code>.json</code>; каталог исключён из git
+              </td>
+            </tr>
+          </table>
+        </div>
+      </section>
+      <section>
+        <h2>2. Метрики на момент snapshot</h2>
+        <div class="table-wrap">
+          <table>
+            <tr>
+              <th>Метрика</th>
+              <th>Значение</th>
+            </tr>
+            <tr>
+              <td>Unit / API spec files</td>
+              <td>401 / 127 = <strong>528</strong></td>
+            </tr>
+            <tr>
+              <td>Unit</td>
+              <td>
+                <strong>4125 passed, 0 failed, 1 skipped, 4126 total</strong>
+              </td>
+            </tr>
+            <tr>
+              <td>API MySQL 8.0</td>
+              <td><strong>1374 passed, 0 failed, 127 suites</strong></td>
+            </tr>
+            <tr>
+              <td>Known-failing unit / API</td>
+              <td><strong>0 / 0 entries</strong></td>
+            </tr>
+            <tr>
+              <td>Live v2/v3/web routes</td>
+              <td><strong>294, 0 load errors</strong></td>
+            </tr>
+            <tr>
+              <td>Dependency advisories</td>
+              <td><strong>14 moderate, 0 critical/high</strong></td>
+            </tr>
+            <tr>
+              <td>Production DDL baseline</td>
+              <td>
+                <code>prod-ddl-2026-11-19.sql</code>:
+                <strong>133 tables + 4 views</strong>
+              </td>
+            </tr>
+            <tr>
+              <td>Architecture</td>
+              <td>
+                <strong
+                  >48 baseline / 48 current / 0 new; critical cycles=0</strong
+                >
+              </td>
+            </tr>
+            <tr>
+              <td>Runtime</td>
+              <td>Compiled <code>dist/server.js</code>, multi-stage Docker</td>
+            </tr>
+            <tr>
+              <td>Extraction defaults</td>
+              <td>
+                <code>outbox=off</code>, <code>cronLocks=off</code>,
+                <code>providerShareExtraction=local</code>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </section>
+      <section>
+        <h2>3. Готовность и оставшиеся блокеры</h2>
+        <p>
+          <strong
+            >Инженерная подготовка — около 80%; operational production readiness
+            — около 60–65%.</strong
+          >
+        </p>
+        <div class="table-wrap">
+          <table>
+            <tr>
+              <th>Направление</th>
+              <th>Готово</th>
+              <th>Направление</th>
+              <th>Готово</th>
+            </tr>
+            <tr>
+              <td>Безопасность</td>
+              <td>75%</td>
+              <td>Runtime/observability</td>
+              <td>90%</td>
+            </tr>
+            <tr>
+              <td>БД</td>
+              <td>85%</td>
+              <td>CI и тесты</td>
+              <td>95%</td>
+            </tr>
+            <tr>
+              <td>Модульные границы</td>
+              <td>80%</td>
+              <td>Обратимый вынос</td>
+              <td>85%</td>
+            </tr>
+            <tr>
+              <td>Consistency/async</td>
+              <td>75%</td>
+              <td>Производительность</td>
+              <td>70%</td>
+            </tr>
+          </table>
+        </div>
+        <h3>До production-пилота обязательно</h3>
+        <ol>
+          <li>Отключить или защитить <code>createtransfers</code>.</li>
+          <li>
+            Подтвердить production PAN/CVV flag и purge; включить поэтапную
+            Argon2id migration.
+          </li>
+          <li>
+            Заменить public paths по сегментам на exact registry; закрыть живые
+            SQL-инъекции.
+          </li>
+          <li>Отозвать APNs и исторические секреты.</li>
+          <li>
+            Назначить primary/backup owner, подтвердить branch protection и
+            alerts.
+          </li>
+          <li>
+            Записать local DTO/404, RPS, p95/p99/errors; проверить migration
+            rollback и backup.
+          </li>
+          <li>
+            Пройти <code>local → shadow → remote cohort → local</code>, затем 14
+            дней стабилизации.
+          </li>
+        </ol>
+        <p class="muted">
+          Production RPS/SLA, реальные данные, live v1 и alert delivery не
+          проверялись. Это не production approval. Booking/Payments/Cancellation
+          остаются в модульном монолите.
+        </p>
+      </section>
+      <section id="en" class="lang">
+        <h2>Immutable current-state snapshot</h2>
+        <p>
+          <strong>Captured:</strong> 25 November 2026 at 15:38:43 +03:00. This
+          snapshot is retained for future before/after comparison and must not
+          be overwritten.
+        </p>
+        <p>
+          <strong>API:</strong>
+          <code>dev@75beb25f205a3b1acbc6c4c314580a1a9c918fd3</code>. Four
+          documentation files are locally modified without a commit:
+          <code>docs/ci/baseline-guards.md</code>,
+          <code>docs/ci/branch-protection.md</code>,
+          <code>docs/db/indexes.md</code>, and
+          <code>docs/db/reproducibility.md</code>. The status repository was at
+          <code>80bc93d</code> when the snapshot data was captured.
+        </p>
+        <p>
+          <strong>Since the 8 November baseline:</strong> 174 commits and 610
+          files changed, with 47,487 insertions and 15,498 deletions.
+        </p>
+        <h3>Recorded metrics</h3>
+        <ul>
+          <li>401 unit and 127 API spec files, 528 total.</li>
+          <li>
+            Unit: 4,125 passed, zero failed, one skipped. API: 1,374 passed
+            across 127 suites.
+          </li>
+          <li>Unit and API known-failing lists are empty.</li>
+          <li>294 live v2/v3/web routes with zero load errors.</li>
+          <li>
+            14 moderate dependency advisories; no critical/high advisories.
+          </li>
+          <li>Production DDL baseline: 133 tables and 4 views.</li>
+          <li>
+            Architecture: 48 baseline imports, 48 current, zero new, zero
+            critical cycles.
+          </li>
+          <li>
+            Compiled <code>dist/server.js</code>. Outbox and cron locks are off;
+            provider-share extraction is local. No production remote has
+            started.
+          </li>
+        </ul>
+        <h3>Readiness and mandatory gates</h3>
+        <p>
+          Engineering readiness is approximately 80%; operational production
+          readiness is approximately 60–65%. Direction scores: security 75%,
+          database 85%, module boundaries 80%, consistency/async 75%,
+          performance 70%, runtime/observability 90%, CI/tests 95%, reversible
+          extraction 85%.
+        </p>
+        <p>
+          Before the production pilot: protect or disable
+          <code>createtransfers</code>; confirm PAN/CVV flag and purge; enable
+          staged Argon2id migration; replace path-segment public routes with an
+          exact registry; close reachable SQL injections; rotate APNs and
+          historical secrets; assign primary/backup owners; confirm branch
+          protection and alerts; record DTO/404, RPS, latency and error
+          baselines; rehearse migration rollback and backup; complete
+          <code>local → shadow → remote cohort → local</code> and then 14 days
+          of stabilization.
+        </p>
+        <p class="muted">
+          Production RPS/SLA, real data, live v1 use, and alert delivery were
+          not verified. This is not production approval.
+          Booking/Payments/Cancellation remains in the modular monolith.
+        </p>
+      </section>
+      <footer>
+        <p>
+          <a href="snapshots/service-snapshot-2026-11-25.json"
+            >Download the immutable JSON snapshot</a
+          >
+          ·
+          <a href="hybrid-readiness-2026-11-25.html">Readiness assessment</a> ·
+          <a href="hybrid-transition-plan-2026-11-25.html">Transition plan</a> ·
+          <a href="service-progress-2026-11-25.html">Comparison with 08.11</a>.
+        </p>
+      </footer>
+    </main>
+  </body>
+</html>
