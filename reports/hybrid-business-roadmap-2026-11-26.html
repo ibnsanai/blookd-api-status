@@ -93,6 +93,10 @@
   </head>
   <body>
     <main>
+      <nav aria-label="Language / Язык">
+        <a href="#ru">Русский</a> · <a href="#en">English</a>
+      </nav>
+      <div id="ru" lang="ru">
       <header>
         <span class="badge next">Актуальный план</span>
         <h1>Blookd: как мы будем развивать сервис без изменений для пользователей</h1>
@@ -418,6 +422,336 @@
         <p>Документ описывает ожидаемый результат и условия готовности. Даты запусков определяются после доказательств предыдущего этапа, а не заранее.</p>
         <p><a href="../index.html">Все отчёты</a> · <a href="service-snapshot-2026-11-25.html">Контрольный снимок состояния</a></p>
       </footer>
+      </div>
+
+      <div id="en" lang="en">
+      <header>
+        <span class="badge next">Current plan</span>
+        <h1>Blookd: how we will develop the service without changing the user experience</h1>
+        <p class="muted">Project manager report · 26 November 2026</p>
+        <p><a href="#ru">Русская версия</a></p>
+        <p class="lead">
+          We will not rebuild the entire service in one large release. First we
+          will prepare a safe operating environment. Then we will move one small
+          function at a time, compare its results with the familiar behaviour,
+          and retain the ability to return immediately to the previous approach.
+        </p>
+        <div class="callout success">
+          <strong>Already completed:</strong> the required work to protect money,
+          passwords, and data is closed. The owner has confirmed that old secrets
+          are considered rotated. The next step is to prepare people, access,
+          backups, and alerts for the first safe launch.
+        </div>
+        <p>
+          <a href="hybrid-readiness-2026-11-25.html">Readiness assessment</a> ·
+          <a href="service-progress-2026-11-25.html">Progress since 8 November</a> ·
+          <a href="hybrid-transition-plan-2026-11-25.html">Previous overall plan</a>
+        </p>
+      </header>
+
+      <section>
+        <h2>The main idea in plain language</h2>
+        <p>
+          Today, most capabilities live in one large system. We will keep its
+          foundation intact and gradually assign individual tasks to small,
+          independent components. This is a hybrid approach: the reliable existing
+          core and the new independent components work together.
+        </p>
+        <div class="steps">
+          <div class="step"><strong>1</strong>Preserve familiar behaviour</div>
+          <div class="step"><strong>2</strong>Check the new approach alongside it</div>
+          <div class="step"><strong>3</strong>Move a small group</div>
+          <div class="step"><strong>4</strong>Return immediately if needed</div>
+        </div>
+        <p>
+          Screens, links, service responses, and the sequence of actions should
+          remain unchanged for customers and providers. If a check finds a
+          difference, the new component receives no further traffic.
+        </p>
+      </section>
+
+      <section>
+        <span class="badge done">Completed</span>
+        <h2>Stage 0. Protecting money, accounts, and data</h2>
+        <div class="grid">
+          <div class="mini">
+            <h3>What has been done</h3>
+            <ul>
+              <li>Dangerous ways of performing financial operations have been closed.</li>
+              <li>Protection for card data and legacy passwords has been strengthened.</li>
+              <li>Access-check bypasses and unsafe data requests have been closed.</li>
+              <li>A comprehensive verification was completed: all automated tests passed.</li>
+            </ul>
+          </div>
+          <div class="mini">
+            <h3>Business value</h3>
+            <p>
+              We are not carrying known vulnerabilities into the new parts of
+              the system. This reduces the risk of financial loss, compromised
+              accounts, and outages during subsequent changes.
+            </p>
+            <p><strong>Users:</strong> familiar workflows have been preserved.</p>
+          </div>
+        </div>
+        <p class="callout warning">
+          The live environment still needs confirmation of the correct settings
+          and actual replacement of old keys. This is part of the next stage.
+        </p>
+      </section>
+
+      <section>
+        <span class="badge next">Next stage</span>
+        <h2>Stage 1. Preparing for a safe launch</h2>
+        <div class="stage">
+          <h3>What will be done</h3>
+          <ul>
+            <li>Assign a primary and a backup owner for the new service.</li>
+            <li>Define who may launch changes and immediately reverse them.</li>
+            <li>Set up private service communication and the minimum necessary access rights.</li>
+            <li>Ensure that mandatory automated checks cannot be bypassed during a release.</li>
+            <li>Record current response times, error rates, and load for comparison.</li>
+            <li>Verify an actual restore from a backup.</li>
+            <li>Send alerts to responsible people instead of only writing journal entries.</li>
+            <li>Rehearse the complete launch and return to the previous approach.</li>
+          </ul>
+        </div>
+        <div class="grid">
+          <div>
+            <h3>Expected outcome</h3>
+            <p>
+              A problem will not trigger a search for an owner and instructions.
+              The on-call person will see the failure, understand its scale, and
+              be able to restore the familiar service behaviour quickly.
+            </p>
+          </div>
+          <div>
+            <h3>How we will know it is ready</h3>
+            <p>
+              Both owners have accepted the instructions; a backup has actually
+              been restored; a test alert has been received; baseline measurements
+              have been recorded; and a return to the previous setup has been rehearsed.
+            </p>
+          </div>
+        </div>
+        <p><strong>Required from leadership:</strong> assign the people, provide an on-call channel, and give administrators access to the live environment settings.</p>
+        <p><strong>Impact on users:</strong> none.</p>
+      </section>
+
+      <section>
+        <span class="badge planned">After Stage 1</span>
+        <h2>Stage 2. Testing the mechanism on a public provider card</h2>
+        <p>
+          The first rehearsal uses a small operation: following a provider link
+          to retrieve only its technical identifier. It involves no payments,
+          data changes, emails, or notifications.
+        </p>
+        <h3>What will be done</h3>
+        <ol>
+          <li>Run a separate copy of this small function and verify its readiness.</li>
+          <li>Initially, it will only compare its answer with the main system's answer for one provider.</li>
+          <li>Then extend the comparison to a small group and check response times and errors.</li>
+          <li>Only after a clean comparison will one provider start receiving answers from the new component.</li>
+          <li>Increase the group gradually, returning to the previous approach several times and checking the result.</li>
+        </ol>
+        <div class="callout">
+          <strong>Expected outcome:</strong> we will prove on a real but safe
+          operation that we can launch, compare, expand, and reverse a migration.
+          This validates the process before we move more important tasks.
+        </div>
+        <p><strong>How we will know it is ready:</strong> answers match; there are no unexplained differences or side effects; speed and reliability remain within agreed limits; and returning to the previous approach works several times. This is followed by 14 days of stable operation.</p>
+        <p><strong>Required from the administrator:</strong> deployment to the live environment, configuration changes according to the instructions, and access to operating measurements.</p>
+        <p><strong>Users:</strong> the same cards and links; if answers differ, we continue using the previous approach.</p>
+      </section>
+
+      <section>
+        <span class="badge planned">Planned</span>
+        <h2>Stage 3.1. Moving resource-intensive reports</h2>
+        <p>
+          Large financial reports and files require substantial resources. Their
+          preparation can currently compete with ordinary user actions. We will
+          move this heavy work into a separate process.
+        </p>
+        <div class="grid">
+          <div>
+            <h3>What will be done</h3>
+            <ul>
+              <li>Record the report contents, access rights, and correct totals.</li>
+              <li>Compare old and new files: amounts, rows, ordering, and dates.</li>
+              <li>During checks, deliver emails only to a test mailbox.</li>
+              <li>Start with one report and expand only after a successful check.</li>
+              <li>Test resource shortages, long reports, and returning to the previous approach.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Expected outcome and readiness</h3>
+            <p>
+              Large reports will no longer interfere with everyday service
+              operations. Ready means that contents and totals match, access
+              rights are not weakened, ordinary actions have not become slower,
+              no extra emails are sent, and returning to the previous method works.
+            </p>
+          </div>
+        </div>
+        <p><strong>Users:</strong> the same reports, buttons, and delivery times; the goal is fewer slowdowns elsewhere.</p>
+      </section>
+
+      <section>
+        <span class="badge planned">After reports</span>
+        <h2>Stage 3.2. Reliable notification delivery</h2>
+        <p>
+          Push notifications, SMS, and email depend on external services. Their
+          failure must not cancel a booking, an order, or another core operation.
+          All notifications will pass through one managed process.
+        </p>
+        <h3>What will be done</h3>
+        <ul>
+          <li>Create a complete list of events and recipients, including old automated deliveries.</li>
+          <li>Record the business operation and the need for its notification as a single unit.</li>
+          <li>Add protection against duplicate delivery after a failure or repeated processing.</li>
+          <li>Set up retries, isolation for problematic messages, and clear alerts for the on-call person.</li>
+          <li>First compare prepared messages without actually delivering them to customers.</li>
+          <li>Move one low-risk type, test failures, and then expand one type at a time.</li>
+        </ul>
+        <div class="callout success">
+          <strong>Expected outcome:</strong> fewer lost and duplicate messages,
+          a clear delivery history, and less impact from external failures on
+          core business operations.
+        </div>
+        <p><strong>How we will know it is ready:</strong> no unexplained losses or duplicates; a problematic message does not stop the others; repeated processing is safe; the on-call person receives alerts; and an actual process stop and return to the previous approach have been rehearsed.</p>
+        <p><strong>Users:</strong> the same messages and settings, with no new wave of emails or notifications during the transition.</p>
+      </section>
+
+      <section>
+        <span class="badge planned">After notifications</span>
+        <h2>Stage 3.3. Separate handling for website traffic</h2>
+        <p>
+          We will gradually separate website visitor handling from mobile
+          applications and core business logic. This will allow the website to
+          evolve and handle its load with less impact on other products.
+        </p>
+        <div class="grid">
+          <div>
+            <h3>What will be done</h3>
+            <ul>
+              <li>Divide website functions into small independent groups.</li>
+              <li>Preserve page addresses, permissions, sign-in, and active sessions.</li>
+              <li>Start with simple public reading that changes no data.</li>
+              <li>Then move individual sections for signed-in users.</li>
+              <li>Enable and disable each group independently.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Expected outcome and readiness</h3>
+            <p>
+              The website can be developed and scaled separately. Ready means
+              that visitors do not lose their sign-in, see the same data and
+              errors, mobile applications are unaffected, and each group has
+              been checked and returned to the previous approach at least once.
+            </p>
+          </div>
+        </div>
+        <p><strong>Important:</strong> this stage does not create a second account system. Unified sign-in is covered separately below.</p>
+      </section>
+
+      <section>
+        <span class="badge planned">New stage</span>
+        <h2>Stage 4. One registration and sign-in service for all business areas</h2>
+        <p>
+          Customers, providers, the website, and the administrative area currently
+          use several similar but different sign-in methods. To expand Blookd into
+          new business areas, we need one place that recognises a person and grants
+          access only to the permitted products and roles.
+        </p>
+        <h3>What is proposed</h3>
+        <ul>
+          <li>Create a separate account service with its own relationship database and its own address during the transition.</li>
+          <li>Store a person's single identifier, application membership, contact verification, and access event history.</li>
+          <li>Keep profiles, wallets, provider data, and customer relationships in the core system: these are business data, not just sign-in data.</li>
+          <li>Use the existing secure service for passwords and codes instead of developing our own password storage.</li>
+          <li>Preserve familiar application responses and active sign-ins to avoid signing out large numbers of users.</li>
+        </ul>
+        <div class="callout">
+          <strong>Why not build an entirely proprietary password system:</strong>
+          it is expensive and risky without a necessary benefit today. A proven
+          secure mechanism is already in use. If we later need to host everything
+          on our own infrastructure, we will separately compare mature open-source
+          options; the hybrid transition itself does not require such a replacement.
+        </div>
+        <h3>How we will migrate</h3>
+        <ol>
+          <li>Check which sign-in methods different application versions actually use.</li>
+          <li>Agree on the single-account rule and a person's rights in different businesses.</li>
+          <li>Migrate existing account relationships without passwords and codes, then reconcile counts and conflicts.</li>
+          <li>Launch the new service with test accounts without changing anyone else's experience.</li>
+          <li>Start with a small group of customer registrations, then add sign-in, providers, social networks, and account recovery.</li>
+          <li>Move administrative sign-in last and only after a separate security review.</li>
+          <li>Prove that an account created in the new service continues to work after returning to the previous approach.</li>
+        </ol>
+        <p><strong>Expected outcome:</strong> one account can be used securely in new products, and registration and access rules no longer need to be copied for every business.</p>
+        <p><strong>How we will know it is ready:</strong> existing accounts and active sign-ins are preserved; there are no lost or incomplete registrations; no duplicate code emails; roles do not overlap; returning to the previous approach has been tested; and the new service operates reliably for at least the agreed period.</p>
+        <p><strong>Required from the business:</strong> decide whether one person has a single account across all areas, how different contact details are combined, and which roles are allowed in each product.</p>
+      </section>
+
+      <section>
+        <h2>What we deliberately are not moving now</h2>
+        <p>
+          Bookings, payments, and cancellations remain in the core system. They
+          are closely connected through shared data. Splitting them prematurely
+          could cause duplicate charges and inconsistent data without delivering
+          real independence. We will revisit this only when measurements show a need.
+        </p>
+      </section>
+
+      <section>
+        <h2>Main risks and how we will limit them</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Risk</th><th>How we protect against it</th></tr></thead>
+            <tbody>
+              <tr><td>A user sees a different result</td><td>We first compare answers without affecting the user, then enable a very small group.</td></tr>
+              <tr><td>A duplicate email, SMS, or charge</td><td>External actions are forbidden during comparison; real operations use duplicate protection and result reconciliation.</td></tr>
+              <tr><td>A new account stops working after a return</td><td>Before launch, we prove that the created account works through both approaches; inconsistent records are tracked and corrected.</td></tr>
+              <tr><td>A new component slows down the service</td><td>We record current measurements in advance, limit the load, and stop expansion if performance worsens.</td></tr>
+              <tr><td>Nobody is available to respond to a failure</td><td>Launch is forbidden without an assigned primary and backup owner.</td></tr>
+              <tr><td>A new component receives excessive access</td><td>We grant only the necessary permissions and verify that other actions are denied.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>What we need from administration and leadership</h2>
+        <ul>
+          <li>Assign owners and an on-call arrangement.</li>
+          <li>Assign responsibility for the live infrastructure, database, and repository settings.</li>
+          <li>Set up private access, backups, alerts, and operating measurements.</li>
+          <li>Provide only the necessary temporary access or execute the prepared commands directly.</li>
+          <li>Agree on launch windows and the authority to return immediately to the previous approach.</li>
+          <li>Approve the business rules for a single account before Stage 4 begins.</li>
+        </ul>
+        <p class="muted">Passwords, keys, and secret configuration values do not need to be shared in chat or reports.</p>
+      </section>
+
+      <section>
+        <h2>Conclusion</h2>
+        <p class="lead">
+          The preparatory engineering work and data protection are complete. The
+          main result now is not the number of new services, but a proven ability
+          to change the system without customers noticing and to reverse changes
+          quickly. The first launch begins only after owners are assigned and
+          operational preparation succeeds.
+        </p>
+        <p>
+          <strong>Next action:</strong> assign the primary and backup owners for
+          the first launch.
+        </p>
+      </section>
+
+      <footer>
+        <p>This document describes expected outcomes and readiness conditions. Launch dates are determined by evidence from the previous stage, not scheduled in advance.</p>
+        <p><a href="../index.html">All reports</a> · <a href="service-snapshot-2026-11-25.html">Current-state snapshot</a></p>
+      </footer>
+      </div>
     </main>
   </body>
 </html>
